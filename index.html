@@ -1,0 +1,27 @@
+<html>
+	<head>
+  	</head>
+	<body>
+		<div style="width:300px; height:400px;" 
+			 id="videorecorder"  
+			 data-uploadurl="fileupload.php" 
+			 data-videowidth="300" 
+			 data-videoheight="300" >  
+		
+			<input id="startRecrodBut" value="Start Recording" type="button" />
+			<input id="stopRecBut" value="Stop Recording" type="button"  />
+		</div>
+
+
+		<script src="http://code.jquery.com/jquery-1.11.0.min.js" type="text/javascript" ></script>
+		<script src="whammy.js" type="text/javascript"></script>
+		<script src="recorder.js" type="text/javascript"></script>
+		<script src="im365.js" type="text/javascript"></script>
+
+	  	<script type="text/javascript">
+		  $(function(){
+		      $("#videorecorder").initVideoAudioRec();
+		  });		 
+		</script>
+	</body>
+</html>
