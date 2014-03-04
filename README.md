@@ -4,7 +4,7 @@ This project is using HTML5 getUserMedia() spec to record audio and video in a s
 
 =
 
-#Project is having few dependencies
+###Project is having few dependencies
 
 1. [JQuery](http://code.jquery.com/jquery-1.11.0.min.js)
 2. [whammy.js](https://github.com/antimatter15/whammy)
@@ -13,7 +13,7 @@ This project is using HTML5 getUserMedia() spec to record audio and video in a s
 
 =
 
-#Usage 
+###Usage 
 
 linking script files 
 
@@ -58,7 +58,7 @@ Finally initiate the component using the following jquery
 </script>
 ```
 
-##Here is a Complete Example 
+###Here is a Complete Example 
 
 ```html
 
@@ -92,5 +92,5 @@ Finally initiate the component using the following jquery
 
 ```
 
-#This project is an experiment by me, and this will work Only for Chrome so all are invited to contribute to this Repo 
+####This project is an experiment by me, and this will work Only for Chrome so all are invited to contribute to this Repo 
 
