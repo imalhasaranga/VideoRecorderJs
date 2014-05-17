@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+<script src="http://code.jquery.com/jquery-1.11.0.min.js" type="text/javascript" ></script>
+<script type="text/javascript">
+	
+
+function imagefun(){
+var quality = 50;
+var img=document.getElementById("scream");
+var c=document.getElementById("myCanvas");
+var ctx=c.getContext("2d");
+var w = img.width*(quality/100);
+var h = img.height*(quality/100);
+
+ctx.drawImage(img,0,0,w,h);
+imageData = ctx.getImageData(0,0,w,h);
+
+}
+
+
+
+
+</script>
+
+</head>
+<body onload="imagefun()">
+
+<img id="scream" src="test.jpg">
+<canvas id="myCanvas" ></canvas>
+</body>
+</html>

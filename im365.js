@@ -27,7 +27,7 @@ var progress;
 var startButton;
 var stopButton;
 
-
+var quality = 1;
 
 
 var audio_context;
@@ -41,21 +41,42 @@ var videoFinished = false;
 var audioBlob = null;
 var videoBlob = null;
 var UploadingURL = "";
+var displaystatus = -1;
 
-$.fn.initVideoAudioRec = function() {
-    initVideoAudioRecording($(this));
+$.fn.initVideoAudioRec = function(options) {
+    initVideoAudioRecording($(this),options);
 };
 
 
-function initVideoAudioRecording(container) {
-    console.log(container);
-    UploadingURL = container.data("uploadurl");
-    var vw = container.data("videowidth");
-    var vh = container.data("videoheight");
+
+
+function initVideoAudioRecording(container,options) {
+    
+    if(options.quality == undefined){
+        quality = 1;
+    }else{
+        if(isFloat(options.quality)){
+            quality = parseFloat(options.quality);
+        }else{
+            quality = 1;
+        }
+    }
+    var startRecrodBut = "startRecrodBut";
+    var stopRecBut = "stopRecBut";
+    var vw = "320";
+    var vh = "240";
+   
+    if(options.startButtonId != undefined){  startRecrodBut = options.startButtonId+""  }
+    if(options.stopButtonId != undefined){   stopRecBut = options.stopButtonId+"" }   
+    if(options.videoWidth != undefined){   vw = options.videoWidth+"" }    
+    if(options.videoHeight != undefined){   vh = options.videoHeight+"" } 
+    if(options.uploadURL != undefined){   UploadingURL = options.uploadURL+"" }     
+
+    
 
     
     audio = document.querySelector('audio'); 
-    canvas = document.createElement('canvas');
+    canvas =  document.createElement('canvas');
     ctx = canvas.getContext('2d');
     
     var videlement = "<video width=\""+vw+"\" height=\""+vh+"\" id=\"imal_ha_videorecele\" autoplay=\"true\" muted></video>";
@@ -64,19 +85,21 @@ function initVideoAudioRecording(container) {
     container.prepend(progressbar);
     container.prepend(videlement);
     
-    $("#startRecrodBut").on("click",function(e){
+    $("#"+startRecrodBut).on("click",function(e){
         startCapture();
     });
 
-    $("#stopRecBut").attr("disabled","disabled");
-    $("#stopRecBut").on("click",function(e){
+    $("#"+stopRecBut).attr("disabled","disabled");
+    $("#"+stopRecBut).on("click",function(e){
         stopCapture();
     });
 
+    $("#"+startRecrodBut).hide();
+    $("#"+stopRecBut).hide();
     video = document.getElementById('imal_ha_videorecele');
     progress = document.getElementById('progress_im_videorecele');
-    startButton = document.getElementById('startRecrodBut');
-    stopButton = document.getElementById('stopRecBut');
+    startButton = document.getElementById(startRecrodBut);
+    stopButton = document.getElementById(stopRecBut);
 
    
 
@@ -98,7 +121,13 @@ function initVideoAudioRecording(container) {
         function(stream){
 
         var input = audio_context.createMediaStreamSource(stream);
-        video.src = window.URL.createObjectURL(stream);
+        var inputstream = window.URL.createObjectURL(stream);
+        video.src = inputstream;
+        if(inputstream && (displaystatus == -1)){
+            displaystatus = 1;
+            $("#"+startRecrodBut).show();
+            $("#"+stopRecBut).show();
+        }
         
         var zeroGain = audio_context.createGain();
         zeroGain.gain.value = 0;
@@ -114,45 +143,37 @@ function initVideoAudioRecording(container) {
         });
 
     }
- 
-/**
- * Capture the next frame of the video.
- */
+
 
 
 function nextFrame(){
     if(capturing){
-        var imageData;
-        ctx.drawImage(video, 0, 0, width, height);
-        imageData = ctx.getImageData(0, 0, width, height);
-        function multiply(topValue, bottomValue){
-  		    return topValue * bottomValue / 255;
-		}
+        var w = width*quality;
+        var h = height*quality;
+        ctx.drawImage(video, 0, 0, w, h);
+        var imageData = ctx.getImageData(0, 0, w, h);
         pix = imageData.data;
-
-		// Draw the result on the canvas
 		ctx.putImageData(imageData, 0, 0);
-        
-        
         images.push({duration : new Date().getTime() - startTime, datas : imageData});
         startTime = new Date().getTime();
         requestAnimationFrame(nextFrame);
     }else{
-        requestAnimationFrame(finalizeVideo);
+        var capture = new Whammy.Video();
+        progress.max = images.length;
+        showProgress(true);
+        encodeVideo(capture, 0);
     }
  
 }
- 
-/**
- * Start the encoding of the captured frames.
- */
-function finalizeVideo(){
-    var capture = new Whammy.Video();
-    progress.max = images.length;
-    showProgress(true);
-    encodeVideo(capture, 0);
+
+function isFloat(value){
+    
+    if(isNaN( parseFloat(value) )){
+        return false;
+    }
+    return true;
 }
- 
+
 
 function encodeVideo(capture, currentImage) {
     if (currentImage < images.length) {
@@ -161,7 +182,7 @@ function encodeVideo(capture, currentImage) {
         delete images[currentImage];
         progress.value = currentImage;
         currentImage++;
-        setTimeout(function() {encodeVideo(capture, currentImage);}, 5);
+        setTimeout(function() {encodeVideo(capture, currentImage);}, 1);
     } else {
         videoBlob = capture.compile();
         console.log('Video Files has Created: ' + videoBlob);
@@ -189,8 +210,10 @@ function initStyle() {
 function startCapture() {
     initStyle();
     //set Canvas size to the video size
-   width =  canvas.width = video.clientWidth;
-   height =  canvas.height = video.clientHeight;
+   width =   video.clientWidth;
+   height =  video.clientHeight;
+   canvas.width =  quality*video.clientWidth;
+   canvas.height = quality*video.clientHeight;
 
     capturing = true;
     startTime = new Date().getTime();
@@ -218,8 +241,7 @@ function stopCapture() {
 
 function CompleteAudio() {
     recorder && recorder.exportWAV(function(blob) {
-      //this url contins wav file
-      var url = URL.createObjectURL(blob);
+      //var url = URL.createObjectURL(blob);  //you can use this function create downloadable wav file
       audioBlob = blob;
       uploadFiles();
     });
@@ -231,6 +253,9 @@ function uploadFiles(){
             var fd = new FormData();
             fd.append("video_data", videoBlob);
             fd.append("audio_data", audioBlob);
+            var videosize = videoBlob.size/(1024 * 1024);
+            var audiosize = audioBlob.size/(1024 * 1024);
+            console.log("video size : "+videosize+"MB Audtio size : "+audiosize+"MB Total Size"+(videosize+audiosize)+"MB");
             $.ajax({
                    url: UploadingURL,
                    type: "POST",
