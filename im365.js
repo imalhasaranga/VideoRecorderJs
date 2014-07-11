@@ -1,286 +1,378 @@
 
- window.URL = window.URL || window.webkitURL;
-    navigator.getUserMedia  = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
-    window.AudioContext = window.AudioContext || window.webkitAudioContext;
 
 
-    window.requestAnimationFrame = (function(){
-          return  window.requestAnimationFrame       || 
-                  window.webkitRequestAnimationFrame || 
-                  window.mozRequestAnimationFrame    || 
-                  window.oRequestAnimationFrame      || 
-                  window.msRequestAnimationFrame
+var VIRecorder = (function(){
+    
+
+    window.URL =    window.URL || 
+                    window.webkitURL;
+        
+    navigator.getUserMedia  =   navigator.getUserMedia || 
+                                navigator.webkitGetUserMedia || 
+                                navigator.mozGetUserMedia || 
+                                navigator.msGetUserMedia;
+
+    window.AudioContext     =   window.AudioContext || 
+                                window.webkitAudioContext;
+
+    window.BlobBuilder      =   window.MozBlobBuilder || 
+                                window.WebKitBlobBuilder || 
+                                window.BlobBuilder;
+
+    var canvas;
+    var ctx;
+
+
+    var recorder;
+    var localStream;
+    var audio_context;
+
+    var UploadingURL = "";
+
+    var videoAudioSync = null;
+    var recrodinterval = null;
+
+    var quality = 1;
+    var framerate = 15;
+    var frames = [];
+    var webp_quality = 0.8;
+
+    var audioElement;
+    var videoElement;
+    var audioBlobURL;
+    var videoBlobURL;
+
+    var countdowntime = 15;
+    var countdownElement= null;
+    var startTime = null;
+
+    function initVIRecorder(options) {
+        var startButton;
+        var stopButton;
+        var vw = "320";
+        var vh = "240";
+        
+        
+        var startRecrodBut = "startRecrodBut";
+        var stopRecBut = "stopRecBut";
+        var palaybackbut = "playback";
+        var discardrecrd = "clearrecording";
+
+       
+       
+        quality = evaluateQuality(options.initVIRecorder);
+        if(options.startButtonId != undefined){   startRecrodBut = options.startButtonId+""  }
+        if(options.stopButtonId != undefined) {   stopRecBut = options.stopButtonId+""       }   
+        if(options.videoWidth != undefined)   {   vw = options.videoWidth+""                 }    
+        if(options.videoHeight != undefined)  {   vh = options.videoHeight+""                } 
+        if(options.uploadURL != undefined)    {   UploadingURL = options.uploadURL+""        }     
+        if(options.webpquality != undefined)  {   webp_quality = options.webpquality         }     
+        if(options.framerate != undefined)    {   framerate = options.framerate              }     
+        if(options.countdowntime != undefined){   countdowntime = options.recordtime         }     
+
+
+        audioElement = document.querySelector('audio'); 
+        videoElement = document.getElementById('im385videorecele');   
+        countdownElement = document.getElementById("countdown");
+        var startRecord = document.getElementById(startRecrodBut);
+        var stopRecord  = document.getElementById(stopRecBut);
+        var playBackRecord = document.getElementById(palaybackbut);
+        var discardRecordng  = document.getElementById(discardrecrd);
+
+        
+        startRecord.addEventListener("click" , function(){
+             startCapture();
+        });
+        stopRecord.addEventListener("click" , function(){
+             stopCapture();
+        });
+         playBackRecord.addEventListener("click" , function(){
+             playBack();
+        });
+        discardRecordng.addEventListener("click" , function(){
+            discardRecord();
+        });
+
+
+        prepareVideoElement(videoElement);
+        setCountDownTime(countdowntime);
+        canvas =  document.createElement('canvas');
+        ctx = canvas.getContext('2d');
+        
+
+        try {
+            audio_context = new AudioContext;
+            navigator.getUserMedia(
+            {
+                audio: true, 
+                video: true
+            }, 
+            function(stream){
+                
+                var input = audio_context.createMediaStreamSource(stream);
+                localStream = window.URL.createObjectURL(stream);
+                videoElement.src = localStream;
+                
+                var zeroGain = audio_context.createGain();
+                zeroGain.gain.value = 0;
+                input.connect(zeroGain);
+                zeroGain.connect(audio_context.destination);
+                recorder = new Recorder(input);
+            }, 
+            function(e) {
+                alert('Audio Input is Not Found : ' + e);
+            });
+
+        } catch (e) {
+            alert('your browser does not support');
+        }
+
+
+        function prepareVideoElement(videoelement){
+            videoelement.width = vw;
+            videoelement.height = vh;
+            videoelement.autoplay = true;
+            videoelement.muted = true;
+        }
+
+    };
+
+
+
+    function startCapture() {
+        startCountDown(null);
+        startTime = new Date().getTime();
+        // ------- Video Recording started ---------------------------------
+        var newWidth = canvas.width  = parseInt(quality*videoElement.clientWidth);
+        var newHeight = canvas.height = parseInt(quality*videoElement.clientHeight);
+        var timmer  = parseInt(1000 /framerate);
+
+        recrodinterval = setInterval(function(){
+            ctx.drawImage(videoElement, 0, 0, newWidth, newHeight);
+            frames.push(canvas.toDataURL('image/webp', webp_quality));
+        }, timmer);
+
+        //--------- Audio Recording Started --------------------------------
+        recorder && recorder.record();
+        lg('Recording audio and video...');
+    }
+     
+
+    function stopCapture() {
+        var audioBlob = null;
+        var videoBlob = null;
+        var spentTime = (new Date().getTime() -startTime)/1000;
+        var localframerate = parseInt(frames.length) /spentTime;
+        lg(localframerate+" Time : "+spentTime+" Frames"+frames.length);
+
+        recorder && recorder.stop();
+        recorder && recorder.exportWAV(function(blob) {
+            audioBlob = blob;
+            if((audioBlob != null) && (videoBlob != null)){
+                capturefinish(blob, videoBlob);   
+            }
+        });
+        recorder.clear();
+        videoBlob = new Whammy.fromImageArray(frames, localframerate);
+        if((audioBlob != null) && (videoBlob != null)){
+                capturefinish(videoBlob, audioBlob);   
+        }
+     
+    }
+
+
+    function capturefinish(audioblob, videoblob){
+
+        var audiobase64 = window.URL.createObjectURL(audioblob);
+        var videobase64 = window.URL.createObjectURL(videoblob);
+        document.getElementById('audiored').src = audiobase64;
+        document.getElementById('awesome').src = videobase64; 
+        document.getElementById('downloadurl').style.display = '';
+        document.getElementById('downloadurl').href = videobase64;
+        document.getElementById('status').innerHTML = "video="+Math.ceil(videoblob.size / (1024))+"KB, Audio="+Math.ceil(audioblob.size / (1024))+"   Total= "+ (Math.ceil(videoblob.size / (1024))+ Math.ceil(audioblob.size / (1024))) + "KB";
+        videoBlobURL = videobase64;
+        audioBlobURL = audiobase64
+        videoElement.autoplay = false;
+        videoElement.src = videoBlobURL;
+
+        sendRequest(audioblob , "audio.wav"); 
+        sendRequest(videoblob , "audio.webm"); 
+        reinit();
+    }
+
+
+    function playBack(){
+        reinit();
+       
+        videoElement.autoplay = true;
+        videoElement.src = videoBlobURL;
+        audioElement.src = audioBlobURL;
+        videoAudioSync =setTimeout(function(){
+            audioElement.currentTime = videoElement.currentTime;
+            audioElement.play();
+        },100);
+    }
+
+    function discardRecord(){
+        reinit();
+        videoElement.autoplay = true;
+        videoElement.src = localStream;
+        videoBlobURL = null;
+        audioBlobURL = null;
+        
+    }
+
+  
+    //-------------------------------------------------------------------------------------------
+
+
+    function lg(data){
+        console.log(data);
+    }
+
+
+    navigator.whichbrowser= (function(){
+        var ua= navigator.userAgent, tem, M= ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+        return M[1];
     })();
 
 
-var audio;
-var video;
-var width;
-var height;
-var canvas;
-var images = [];
-var ctx;
-var capture;
-var startTime;
 
-var progress;
-var startButton;
-var stopButton;
-
-var quality = 1;
+    function isFloat(value){
+        if(isNaN( parseFloat(value) )){
+            return false;
+        }
+        return true;
+    }
 
 
-var audio_context;
-
-var recorder;
-var localStream;
-
-var capturing = false;
-var audioFinished = false;
-var videoFinished = false;
-var audioBlob = null;
-var videoBlob = null;
-var UploadingURL = "";
-var displaystatus = -1;
-
-$.fn.initVideoAudioRec = function(options) {
-    initVideoAudioRecording($(this),options);
-};
-
-
-
-
-function initVideoAudioRecording(container,options) {
-    
-    if(options.quality == undefined){
-        quality = 1;
-    }else{
-        if(isFloat(options.quality)){
-            quality = parseFloat(options.quality);
+    function evaluateQuality(varaiblequaity){
+        if(varaiblequaity == undefined){
+            return  1;
         }else{
-            quality = 1;
+            if(isFloat(varaiblequaity)){
+                return  parseFloat(varaiblequaity);
+            }
+           return  1;     
         }
     }
-    var startRecrodBut = "startRecrodBut";
-    var stopRecBut = "stopRecBut";
-    var vw = "320";
-    var vh = "240";
-   
-    if(options.startButtonId != undefined){  startRecrodBut = options.startButtonId+""  }
-    if(options.stopButtonId != undefined){   stopRecBut = options.stopButtonId+"" }   
-    if(options.videoWidth != undefined){   vw = options.videoWidth+"" }    
-    if(options.videoHeight != undefined){   vh = options.videoHeight+"" } 
-    if(options.uploadURL != undefined){   UploadingURL = options.uploadURL+"" }     
 
-    
-
-    
-    audio = document.querySelector('audio'); 
-    canvas =  document.createElement('canvas');
-    ctx = canvas.getContext('2d');
-    
-    var videlement = "<video width=\""+vw+"\" height=\""+vh+"\" id=\"imal_ha_videorecele\" autoplay=\"true\" muted></video>";
-    var progressbar = "<progress id=\"progress_im_videorecele\" style=\"visibility: hidden; float:left; width:100% \"></progress>";
-    
-    container.prepend(progressbar);
-    container.prepend(videlement);
-    
-    $("#"+startRecrodBut).on("click",function(e){
-        startCapture();
-    });
-
-    $("#"+stopRecBut).attr("disabled","disabled");
-    $("#"+stopRecBut).on("click",function(e){
-        stopCapture();
-    });
-
-    $("#"+startRecrodBut).hide();
-    $("#"+stopRecBut).hide();
-    video = document.getElementById('imal_ha_videorecele');
-    progress = document.getElementById('progress_im_videorecele');
-    startButton = document.getElementById(startRecrodBut);
-    stopButton = document.getElementById(stopRecBut);
-
-   
-
-
-    try {
-        audio_context = new AudioContext;
-    } catch (e) {
-        alert('No Web Audio Support In This Browser!');
-    }
-
-    
-
-    navigator.getUserMedia(
-        {
-            audio: true, 
-            video: true
-        }, 
-
-        function(stream){
-
-        var input = audio_context.createMediaStreamSource(stream);
-        var inputstream = window.URL.createObjectURL(stream);
-        video.src = inputstream;
-        if(inputstream && (displaystatus == -1)){
-            displaystatus = 1;
-            $("#"+startRecrodBut).show();
-            $("#"+stopRecBut).show();
+    function reinit(){
+        
+        if(recrodinterval != null){
+            clearInterval(recrodinterval);
         }
-        
-        var zeroGain = audio_context.createGain();
-        zeroGain.gain.value = 0;
-        input.connect(zeroGain);
-        zeroGain.connect(audio_context.destination);
-        
-        recorder = new Recorder(input);
+        if(videoAudioSync != null){
+            clearTimeout(videoAudioSync);
+        }
+        setCountDownTime(countdowntime);
+        frames = [];
+    }
 
-        }, 
+    function setCountDownTime(time){
+        if(time == -1){
+            return -1;
+        }else{
+            countdownElement.innerHTML = time;
+            return 1;
+        }
+    }
 
-        function(e) {
-            alert('Audio Input is Not Found : ' + e);
-        });
-
+    var functioncalltime = 0;
+    function startCountDown(interval){
+        if(interval == null){
+            functioncalltime = countdowntime; 
+            var intervalcount = setInterval( function(){ startCountDown(intervalcount);  }, 1000 );
+            startCountDown(intervalcount);
+        }else{
+           var val = setCountDownTime(--functioncalltime); 
+           if(val == -1){
+               clearInterval(interval);
+               stopCapture();
+           }
+        }
     }
 
 
+    function sendRequest(blob , name) {
+            var BYTES_PER_CHUNK = 1048576; // 1MB chunk sizes.
+            var SIZE = blob.size;
+            var start = 0;
+            var end = BYTES_PER_CHUNK;
+            
+            window.uploadcounter=0;
+            window.uploadfilearray = [];
+            document.getElementById('progressNumber').innerHTML = "Upload: 0 % ";
+            
+            while( start < SIZE ) {
 
-function nextFrame(){
-    if(capturing){
-        var w = width*quality;
-        var h = height*quality;
-        ctx.drawImage(video, 0, 0, w, h);
-        var imageData = ctx.getImageData(0, 0, w, h);
-        pix = imageData.data;
-		ctx.putImageData(imageData, 0, 0);
-        images.push({duration : new Date().getTime() - startTime, datas : imageData});
-        startTime = new Date().getTime();
-        requestAnimationFrame(nextFrame);
-    }else{
-        var capture = new Whammy.Video();
-        progress.max = images.length;
-        showProgress(true);
-        encodeVideo(capture, 0);
+                var chunk = blob.slice(start, end);
+                window.uploadfilearray[window.uploadcounter]=chunk;
+                window.uploadcounter=window.uploadcounter+1;
+                start = end;
+                end = start + BYTES_PER_CHUNK;
+            }
+
+            window.uploadcounter=0;
+            uploadFile(window.uploadfilearray[window.uploadcounter],name);
     }
- 
-}
 
-function isFloat(value){
+        
+
+    function uploadFile(blobFile,filename) {
+        var fd = new FormData();
+        fd.append("fileToUpload", blobFile);
+        var xhr = new XMLHttpRequest();
+
+
+        xhr.addEventListener("load", uploadComplete, false);
+        xhr.addEventListener("error", uploadFailed, false);
+        xhr.addEventListener("abort", uploadCanceled, false);
+
+        xhr.open("POST", UploadingURL+"?filename="+filename);
+
+        xhr.onload = function(e) {
+            window.uploadcounter=window.uploadcounter+1;
+            if (window.uploadfilearray.length > window.uploadcounter ){
+                uploadFile(window.uploadfilearray[window.uploadcounter], filename); 
+                var percentloaded2 = parseInt((window.uploadcounter/window.uploadfilearray.length)*100);
+                document.getElementById('progressNumber').innerHTML = 'Upload: '+percentloaded2+' % ';                              
+            }else{
+                document.getElementById('progressNumber').innerHTML = "File uploaded";
+               // loadXMLDoc('./system/loaddir.php?url='+ window.currentuploaddir);
+            }
+        };
+
+        xhr.send(fd);
+
+    }
+
+    function uploadComplete(evt) {
+            lg("Upload Success");
+            if (evt.target.responseText != ""){
+               alert(evt.target.responseText);
+            }
+    }
+
+    function uploadFailed(evt) {
+            alert("There was an error attempting to upload the file.");
+    }
+
+    function uploadCanceled(evt) {
+            xhr.abort();
+            xhr = null;
+    }
+
     
-    if(isNaN( parseFloat(value) )){
-        return false;
-    }
-    return true;
-}
 
-
-function encodeVideo(capture, currentImage) {
-    if (currentImage < images.length) {
-        ctx.putImageData(images[currentImage].datas, 0, 0);
-        capture.add(ctx, images[currentImage].duration);
-        delete images[currentImage];
-        progress.value = currentImage;
-        currentImage++;
-        setTimeout(function() {encodeVideo(capture, currentImage);}, 1);
-    } else {
-        videoBlob = capture.compile();
-        console.log('Video Files has Created: ' + videoBlob);
-        images = [];
-        enableStartButton(true);
-        uploadFiles();
-    }
-}
- 
-
-
-/**
- * Initialize the css style of the buttons and the progress bar
- * when capturing.
- */
-function initStyle() {
-    showProgress(false);
-    enableStartButton(false);
-    enableStopButton(true);
-}
- 
-/**
- * Start the video capture.
- */
-function startCapture() {
-    initStyle();
-    //set Canvas size to the video size
-   width =   video.clientWidth;
-   height =  video.clientHeight;
-   canvas.width =  quality*video.clientWidth;
-   canvas.height = quality*video.clientHeight;
-
-    capturing = true;
-    startTime = new Date().getTime();
-    nextFrame();
-
-    recorder && recorder.record();
-    console.log('Recording audio and video...');
-}
- 
-/**
- * Stop the video capture.
- */
-function stopCapture() {
-    capturing = false;
-    enableStopButton(false);
-
-    recorder && recorder.stop();
-    CompleteAudio();
-    recorder.clear();
-
-    console.log('Stopped recording Video and Audio.');
-
-}
-
-
-function CompleteAudio() {
-    recorder && recorder.exportWAV(function(blob) {
-      //var url = URL.createObjectURL(blob);  //you can use this function create downloadable wav file
-      audioBlob = blob;
-      uploadFiles();
-    });
-  }
-
-function uploadFiles(){
-
-    if((audioBlob != null) && (videoBlob != null)){
-            var fd = new FormData();
-            fd.append("video_data", videoBlob);
-            fd.append("audio_data", audioBlob);
-            var videosize = videoBlob.size/(1024 * 1024);
-            var audiosize = audioBlob.size/(1024 * 1024);
-            console.log("video size : "+videosize+"MB Audtio size : "+audiosize+"MB Total Size"+(videosize+audiosize)+"MB");
-            $.ajax({
-                   url: UploadingURL,
-                   type: "POST",
-                   data: fd,
-                   processData: false,
-                   contentType: false,
-            }).done(function(respond){
-                    alert("Files has been uploaded...."+respond);
-            });
-    }
-
-}
+    return initVIRecorder;
+})()
 
 
 
-function enableStartButton(enabled) {
-    startButton.disabled = !enabled;
-}
- 
 
-function enableStopButton(enabled) {
-    stopButton.disabled = !enabled;
-}
- 
-function showProgress(show) {
-    progress.style.visibility = show ? 'visible' : 'hidden';
-}
- 
+
+
+
+
+

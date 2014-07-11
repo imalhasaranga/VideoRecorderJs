@@ -1,9 +1,37 @@
 <?php
 
 
-move_uploaded_file($_FILES["video_data"]["tmp_name"],"video/Testaudio.webm");
-move_uploaded_file($_FILES["audio_data"]["tmp_name"],"video/Testaudio.mp3");
+$target_path = "uploads/";
 
-echo "Done : ";
+
+$tmp_name = $_FILES['fileToUpload']['tmp_name'];
+$size = $_FILES['fileToUpload']['size'];
+$name = $_FILES['fileToUpload']['name'];
+$name2 = $_GET['filename'];
+
+$target_file = $target_path.$name;
+
+
+$complete =$target_path.$name2;
+$com = fopen($complete, "ab");
+error_log($target_path);
+
+// Open temp file
+//$out = fopen($target_file, "wb");
+
+//if ( $out ) {
+    // Read binary input stream and append it to temp file
+    $in = fopen($tmp_name, "rb");
+    if ( $in ) {
+        while ( $buff = fread( $in, 1048576 ) ) {
+           // fwrite($out, $buff);
+            fwrite($com, $buff);
+        }   
+    }
+    fclose($in);
+
+//}
+//fclose($out);
+fclose($com);
 
 ?>
