@@ -211,7 +211,7 @@ I have used php but you can use any server side language
 
 ###Fixes 
 
-1. increased the flexibility of the component
+1. increased the flexibility of the api
 2. provided support for Opera latest version
 3. removed the dependancy of JQuery and make it pure javascript
 4. uploading time reduced by uploading blob as chunks 
