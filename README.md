@@ -1,6 +1,8 @@
 ## HTML5 Video + Audio Recording Component 
 
-This project is using HTML5 getUserMedia() spec to record audio and video in a server less manner 
+This project is using webRTC's getUserMedia() spec to record audio and video both in the client side
+and upload as chunks to the server, current project support latest versions of Opera and Chrome and 
+hoping to provide support for Firefox in near future.
 
 
 ###Usage 
