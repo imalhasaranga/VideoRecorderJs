@@ -209,7 +209,7 @@ var virec = new VIRecorder.initVIRecorder(
 I have used php but you can use any server side language
 
 
-###Fixes 
+###Fixes, Changes
 
 1. increased the flexibility of the api
 2. provided support for Opera latest version
