@@ -147,20 +147,25 @@ var VIRecorder = (function(){
         var localframerate = parseInt(frames.length) /spentTime;
         lg(localframerate+" Time : "+spentTime+" Frames : "+frames.length);
 
+
         recorder && recorder.stop();
         recorder && recorder.exportWAV(function(blob) {
             audioBlob = blob;
             if((audioBlob != null) && (videoBlob != null)){
                 capturefinish(blob, videoBlob , oncapturefinish);   
             }
+          recorder.clear();
         });
-        recorder.clear();
+        
         videoBlob = new Whammy.fromImageArray(frames, localframerate);
         if((audioBlob != null) && (videoBlob != null)){
                 capturefinish(videoBlob, audioBlob, oncapturefinish);   
         }
      
     }
+
+
+
 
 
     function capturefinish(audioblob, videoblob, oncapturefinish){
