@@ -2,21 +2,21 @@
 
 
 var VIRecorder = (function(){
-    
 
-    window.URL =    window.URL || 
+
+    window.URL =    window.URL ||
                     window.webkitURL;
-        
-    navigator.getUserMedia  =   navigator.getUserMedia || 
-                                navigator.webkitGetUserMedia || 
-                                navigator.mozGetUserMedia || 
+
+    navigator.getUserMedia  =   navigator.getUserMedia ||
+                                navigator.webkitGetUserMedia ||
+                                navigator.mozGetUserMedia ||
                                 navigator.msGetUserMedia;
 
-    window.AudioContext     =   window.AudioContext || 
+    window.AudioContext     =   window.AudioContext ||
                                 window.webkitAudioContext;
 
-    window.BlobBuilder      =   window.MozBlobBuilder || 
-                                window.WebKitBlobBuilder || 
+    window.BlobBuilder      =   window.MozBlobBuilder ||
+                                window.WebKitBlobBuilder ||
                                 window.BlobBuilder;
 
     var canvas;
@@ -64,40 +64,40 @@ var VIRecorder = (function(){
         var vh = "240";
 
         quality = evaluateQuality(options.initVIRecorder);
-        if(options.videoWidth != undefined)   {   vw = options.videoWidth+""                 }    
-        if(options.videoHeight != undefined)  {   vh = options.videoHeight+""                } 
-        if(options.webpquality != undefined)  {   webp_quality = options.webpquality         }     
-        if(options.framerate != undefined)    {   framerate = options.framerate              }     
-        if(options.videotagid != undefined)   {   videotagid = options.videotagid            }else { throw "Video Tag is Undefined"; }     
+        if(options.videoWidth != undefined)   {   vw = options.videoWidth+""                 }
+        if(options.videoHeight != undefined)  {   vh = options.videoHeight+""                }
+        if(options.webpquality != undefined)  {   webp_quality = options.webpquality         }
+        if(options.framerate != undefined)    {   framerate = options.framerate              }
+        if(options.videotagid != undefined)   {   videotagid = options.videotagid            }else { throw "Video Tag is Undefined"; }
 
 
 
-        audioElement = document.querySelector('audio'); 
-        videoElement = document.getElementById(options.videotagid);   
+        audioElement = document.querySelector('audio');
+        videoElement = document.getElementById(options.videotagid);
         prepareVideoElement(videoElement);
         canvas =  document.createElement('canvas');
         ctx = canvas.getContext('2d');
-        
+
 
         try {
             audio_context = new AudioContext;
             navigator.getUserMedia(
             {
-                audio: true, 
+                audio: true,
                 video: true
-            }, 
+            },
             function(stream){
                 streamready();
                 var input = audio_context.createMediaStreamSource(stream);
                 localStream = window.URL.createObjectURL(stream);
                 videoElement.src = localStream;
-                
+
                 var zeroGain = audio_context.createGain();
                 zeroGain.gain.value = 0;
                 input.connect(zeroGain);
                 zeroGain.connect(audio_context.destination);
                 recorder = new Recorder(input);
-            }, 
+            },
             function(e) {
                 streamerror({ code : 100, error : e});
             });
@@ -116,10 +116,10 @@ var VIRecorder = (function(){
 
     };
 
-    
+
 
    init.prototype.startCapture = function() {
-            
+
             startTime = new Date().getTime();
             // ------- Video Recording started ---------------------------------
             var newWidth = canvas.width  = parseInt(quality*videoElement.clientWidth);
@@ -134,10 +134,10 @@ var VIRecorder = (function(){
                 frames.push(canvas.toDataURL('image/webp', webp_quality));
             }, timmer);
 
-            
+
             lg('Recording audio and video...');
     }
-     
+
 
    init.prototype.stopCapture =  function (oncapturefinish) {
         endCaptureInit();
@@ -152,16 +152,16 @@ var VIRecorder = (function(){
         recorder && recorder.exportWAV(function(blob) {
             audioBlob = blob;
             if((audioBlob != null) && (videoBlob != null)){
-                capturefinish(blob, videoBlob , oncapturefinish);   
+                capturefinish(blob, videoBlob , oncapturefinish);
             }
           recorder.clear();
         });
-        
+
         videoBlob = new Whammy.fromImageArray(frames, localframerate);
         if((audioBlob != null) && (videoBlob != null)){
-                capturefinish(videoBlob, audioBlob, oncapturefinish);   
+                capturefinish(audioBlob, videoBlob, oncapturefinish);   
         }
-     
+
     }
 
 
@@ -182,7 +182,7 @@ var VIRecorder = (function(){
 
     init.prototype.play = function(){
         reinit();
-       
+
         videoElement.autoplay = true;
         videoElement.src = videoBlobURL;
         audioElement.src = audioBlobURL;
@@ -198,11 +198,11 @@ var VIRecorder = (function(){
         videoElement.src = localStream;
         videoBlobURL = null;
         audioBlobURL = null;
-        
+
     }
 
     init.prototype.uploadData = function(options , onupload){
-          CurrentBlobUpload  = 0;  
+          CurrentBlobUpload  = 0;
           BlobSlizeArray = [];
           functononupload = onupload;
           chunksize = options.blobchunksize;
@@ -219,7 +219,7 @@ var VIRecorder = (function(){
           sendRequest(allblobs , allnames );
     }
 
-  
+
     //-------------------------------------------------------------------------------------------
 
 
@@ -250,12 +250,12 @@ var VIRecorder = (function(){
             if(isFloat(varaiblequaity)){
                 return  parseFloat(varaiblequaity);
             }
-           return  1;     
+           return  1;
         }
     }
 
     function reinit(){
-        
+
         if(recrodinterval != null){
             clearInterval(recrodinterval);
         }
@@ -274,19 +274,19 @@ var VIRecorder = (function(){
         }
     }
 
-    
+
 
     function sendRequest(blobar , namear ) {
-    
+
           for(var y =0; y < blobar.length; ++y){
-                var blob = blobar[y]; 
+                var blob = blobar[y];
                 var blobnamear = namear[y];
 
                 var BYTES_PER_CHUNK = chunksize; //1048576; // 1MB chunk sizes.
                 var SIZE = blob.size;
                 var start = 0;
                 var end = BYTES_PER_CHUNK;
-  
+
                 while( start < SIZE ) {
                     var chunk = blob.slice(start, end);
                     var chunkdata = { blobchunk : chunk , upname : blobnamear};
@@ -294,12 +294,12 @@ var VIRecorder = (function(){
                     start = end;
                     end = start + BYTES_PER_CHUNK;
                 }
-          }  
+          }
             var blobdataa = BlobSlizeArray[CurrentBlobUpload];
-            uploadBlobs(blobdataa.blobchunk, blobdataa.upname); 
+            uploadBlobs(blobdataa.blobchunk, blobdataa.upname);
     }
 
-    
+
     function uploadBlobs(blobchunk , namesend){
         var fd = new FormData();
         fd.append("fileToUpload", blobchunk);
@@ -317,8 +317,8 @@ var VIRecorder = (function(){
                 functononupload(BlobSlizeArray.length , (CurrentBlobUpload+1));
                 ++CurrentBlobUpload;
                 var blobdataa = BlobSlizeArray[CurrentBlobUpload];
-                uploadBlobs(blobdataa.blobchunk, blobdataa.upname); 
-                
+                uploadBlobs(blobdataa.blobchunk, blobdataa.upname);
+
             }else{
                 functononupload(BlobSlizeArray.length , BlobSlizeArray.length);
             }
@@ -327,7 +327,7 @@ var VIRecorder = (function(){
     }
 
 
-    
+
 
     function uploadComplete(evt) {
             lg("Upload Success");
@@ -345,16 +345,7 @@ var VIRecorder = (function(){
             xhr = null;
     }
 
-    
+
 
      return { initVIRecorder : init};
 })()
-
-
-
-
-
-
-
-
-
