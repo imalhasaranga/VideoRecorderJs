@@ -1,4 +1,4 @@
-var VideoAudioRecorder = (function () {
+var VideoAudioRecorderJS = (function () {
 
 
     window.URL = window.URL ||

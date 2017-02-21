@@ -29,7 +29,7 @@
 
 <script src="whammy.js" type="text/javascript"></script>
 <script src="recorder.js" type="text/javascript"></script>
-<script src="VideoAudioRecorder.js" type="text/javascript"></script>
+<script src="VideoAudioRecorderJS.js" type="text/javascript"></script>
 
 <script type="text/javascript">
 
@@ -43,7 +43,7 @@
     var progressNumber = document.getElementById("progressNumber");
 
 
-    var virec = new VideoAudioRecorder.init(
+    var virec = new VideoAudioRecorderJS.init(
             {
                 resize: 1, // recorded video dimentions are 0.4 times smaller than the original
                 webpquality: 0.99, // chrome and opera support webp imags, this is about the aulity of a frame
@@ -52,8 +52,6 @@
                 videoWidth: "640",
                 videoHeight: "480",
                 log: true,
-                mediaRecorderType :"webscript"
-
             },
             function () {
                 //success callback. this will fire if browsers supports
