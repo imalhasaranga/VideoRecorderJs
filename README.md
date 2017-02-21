@@ -24,7 +24,7 @@ Initializing
 
 ```html
 
-var virec = new VideoAudioRecorderJS.init(
+var virec = new VideoRecorderJS.init(
             {
                 resize: 1, // recorded video dimentions are 0.4 times smaller than the original
                 webpquality: 0.99, // chrome and opera support webp imags, this is about the aulity of a frame
@@ -249,6 +249,10 @@ I have used php but you can use any server side language
 ## Change log
 
 Please see [CHANGELOG](CHANGELOG.md) for more information what has changed recently.
+
+## Contributing
+**Bug fixes** and **new features** can be proposed using [pull requests](https://github.com/imalhasaranga/VideoRecorderJs/pulls).
+Please read the [contribution guidelines](CONTRIBUTION.md) before submitting a pull request.
 
 ## Credits
 

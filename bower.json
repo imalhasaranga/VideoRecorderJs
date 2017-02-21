@@ -1,0 +1,27 @@
+{
+  "name": "videorecorderjs",
+  "description": "html5 video recording library",
+  "main": "index.js",
+  "authors": [
+    "Imal hasaranga"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "webrtc",
+    "html5",
+    "getUserMedia",
+    "MediaStreamRecorder",
+    "video",
+    "audio",
+    "record"
+  ],
+  "homepage": "https://github.com/imalhasaranga/Html5_Video_Audio_Recorder",
+  "moduleType": [],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
