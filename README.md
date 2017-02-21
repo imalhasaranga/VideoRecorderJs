@@ -1,9 +1,13 @@
-## HTML5 Video + Audio Recording Component 
+##VideoAudioRecorderJs
 
-This project is using webRTC's getUserMedia() spec to record audio and video both in the client side
-and upload as chunks to the server, current project support latest versions of Opera and Chrome and 
-hoping to provide support for Firefox in near future.
+Older Version of this Project was supporting video audio recording mechanisam implemented using whammy.js and Recorder.js but with the
 
+* Microsoft Edge
+* Chrome
+* Firefox
+* Opera
+
+Note : Safari is not supported
 
 ###Usage 
 
@@ -12,7 +16,7 @@ linking script files
 ```html
 <script src="whammy.js" type="text/javascript"></script>
 <script src="recorder.js" type="text/javascript"></script>
-<script src="VIRecorder.js" type="text/javascript"></script>
+<script src="VideoAudioRecorder.js" type="text/javascript"></script>
 ```
 
 Initializing 
@@ -72,7 +76,7 @@ var virec = new VIRecorder.initVIRecorder(
 		
 		<script src="whammy.js" type="text/javascript"></script>
 		<script src="recorder.js" type="text/javascript"></script>
-		<script src="VIRecorder.js" type="text/javascript"></script>
+		<script src="VideoAudioRecorder.js" type="text/javascript"></script>
 
 	  	<script type="text/javascript">
 
