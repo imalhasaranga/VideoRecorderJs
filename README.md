@@ -1,4 +1,4 @@
-##VideoAudioRecorderJs
+## VideoAudioRecorderJs
 
 Older Version of this Project was supporting video audio recording mechanisam implemented using whammy.js and Recorder.js but with the 1.0.0 version release
 We have used [MediaStream Recording](https://www.w3.org/TR/mediastream-recording/) Spec as the main recroder but legacy browsers which does not support for this new spec will fallback to old recroder implementation, below are the browsers that are currently supported by the script
@@ -10,29 +10,30 @@ We have used [MediaStream Recording](https://www.w3.org/TR/mediastream-recording
 
 Note : Safari is not supported
 
-###Usage 
+### Usage
+* NPM : `npm install videorecorderjs --save`
+* Bower : `bower install videorecorderjs --save`
 
-linking script files 
+Or linking script files
 
 ```html
-<script src="whammy.js" type="text/javascript"></script>
-<script src="recorder.js" type="text/javascript"></script>
-<script src="VideoAudioRecorderJS.js" type="text/javascript"></script>
+<script src="../dist/VideoRecorderJS.min.js" type="text/javascript"></script>
 ```
 
 Initializing 
 
 ```html
 
-var virec = new VideoRecorderJS.init(
+    var virec = new VideoRecorderJS.init(
             {
-                resize: 1, // recorded video dimentions are 0.4 times smaller than the original
-                webpquality: 0.99, // chrome and opera support webp imags, this is about the aulity of a frame
-                framerate: 15,  // recording frame rate
+                resize: 0.8,
+                webpquality: 0.9,
+                framerate: 15,
                 videotagid: "viredemovideoele",
                 videoWidth: "640",
                 videoHeight: "480",
                 log: true,
+                workerPath : "../dist/recorderWorker.js"
             },
             function () {
                 //success callback. this will fire if browsers supports
@@ -58,9 +59,11 @@ var virec = new VideoRecorderJS.init(
 * `framerate`       : frame rate
 
 
-###Here is a Complete Example 
+### Here is a Complete Example
+check the `demo` folder for working example
 
 ```html
+
 <html>
 <head>
 </head>
@@ -85,14 +88,9 @@ var virec = new VideoRecorderJS.init(
 <div id="progressNumber" style="font-size:20px;"></div>
 
 
-<div id="images">
-
-</div>
 
 
-<script src="whammy.js" type="text/javascript"></script>
-<script src="recorder.js" type="text/javascript"></script>
-<script src="VideoAudioRecorderJS.js" type="text/javascript"></script>
+<script src="../dist/VideoRecorderJS.min.js" type="text/javascript"></script>
 
 <script type="text/javascript">
 
@@ -106,15 +104,17 @@ var virec = new VideoRecorderJS.init(
     var progressNumber = document.getElementById("progressNumber");
 
 
-    var virec = new VideoAudioRecorderJS.init(
+    var virec = new VideoRecorderJS.init(
             {
-                resize: 1, // recorded video dimentions are 0.4 times smaller than the original
-                webpquality: 0.99, // chrome and opera support webp imags, this is about the aulity of a frame
+                resize: 0.8, // recorded video dimentions are 0.4 times smaller than the original
+                webpquality: 0.5, // chrome and opera support webp imags, this is about the aulity of a frame
                 framerate: 15,  // recording frame rate
                 videotagid: "viredemovideoele",
                 videoWidth: "640",
                 videoHeight: "480",
                 log: true,
+                mediaRecorderType : "webscript",
+                workerPath : "../dist/recorderWorker.js"
             },
             function () {
                 //success callback. this will fire if browsers supports
@@ -189,7 +189,9 @@ var virec = new VideoRecorderJS.init(
         });
     });
 
+
     //------------------------------- few functions that demo, how to play with the api --------------------------
+
     var countdowntime = 15;
     var functioncalltime = 0;
     var timerInterval = null;
@@ -218,6 +220,7 @@ var virec = new VideoRecorderJS.init(
         return time;
     }
 
+
     function startCountDown() {
         if (timerInterval == null) {
             functioncalltime = countdowntime;
@@ -231,18 +234,22 @@ var virec = new VideoRecorderJS.init(
             }, 1000);
         }
     }
+
     function stopCountDown() {
         if (timerInterval) {
             clearInterval(timerInterval);
             timerInterval = null;
         }
     }
+
+
 </script>
 </body>
 </html>
 
+
 ```
-###Server Side Code
+### Server Side Code
 I have used php but you can use any server side language
 
 

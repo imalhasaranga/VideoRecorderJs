@@ -55,6 +55,7 @@ var VideoRecorderJS = (function () {
     var logs = true;
     var mediaRecorderType = "auto";
     var UploadingURL = "";
+    var workerPath = null;
 
 
     var audioElement;
@@ -74,17 +75,18 @@ var VideoRecorderJS = (function () {
 
     function HTML5Recorder(options, streamready, streamerror) {
 
-        var vw = (options.videoWidth != null) ? options.videoWidth + "" : default_width;
-        var vh = (options.videoHeight != null) ? options.videoHeight + "" : default_height;
+        var vw = (options.videoWidth !== null) ? options.videoWidth + "" : default_width;
+        var vh = (options.videoHeight !== null) ? options.videoHeight + "" : default_height;
 
-        quality = (options.resize != null) ? parseFloat(options.resize) : quality;
+        quality = (options.resize !== null) ? parseFloat(options.resize) : quality;
         webp_quality = (options.webpquality != null) ? options.webpquality : webp_quality;
-        framerate = (options.framerate != null) ? options.framerate : framerate;
+        framerate = (options.framerate !== null) ? options.framerate : framerate;
         logs = (options.log) ? options.log : logs;
-        mediaRecorderType = (options.mediaRecorderType != null) ? options.mediaRecorderType : mediaRecorderType;
+        mediaRecorderType = (options.mediaRecorderType !== null) ? options.mediaRecorderType : mediaRecorderType;
+        workerPath = (options.workerPath != null) ? options.workerPath : workerPath;
 
-        if (options.videotagid != undefined) {
-            videotagid = options.videotagid
+        if (options.videotagid !== null) {
+            videotagid = options.videotagid;
         } else {
             throw "Video Tag is Undefined in the Options Object.... Quiting";
         }
@@ -105,7 +107,7 @@ var VideoRecorderJS = (function () {
         videoElement.muted = true;
         try {
             streamEnded = false;
-            audio_context = new AudioContext;
+            audio_context = new AudioContext();
             navigator.getUserMedia(
                 {
                     audio: true,
@@ -126,7 +128,7 @@ var VideoRecorderJS = (function () {
                     videoElement.src = window.URL.createObjectURL(stream);
 
                     var isMediaRec = true;
-                    if(mediaRecorderType != null){
+                    if(mediaRecorderType !== null){
                         if(mediaRecorderType == "webscript"){
                             isMediaRec = false;
                         }else if(mediaRecorderType == "mediarecorder"){
@@ -171,7 +173,7 @@ var VideoRecorderJS = (function () {
                         zeroGain.gain.value = 0;
                         input.connect(zeroGain);
                         zeroGain.connect(audio_context.destination);
-                        recorder = new Recorder(input);
+                        recorder = new Recorder(input,{workerPath : workerPath});
                     }
                     streamready && streamready();
 

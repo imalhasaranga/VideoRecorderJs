@@ -22,9 +22,14 @@
 <div id="progressNumber" style="font-size:20px;"></div>
 
 
+<div id="images">
+
+</div>
 
 
-<script src="../dist/VideoRecorderJS.min.js" type="text/javascript"></script>
+<script src="../src/whammy.js" type="text/javascript"></script>
+<script src="../src/recorder.js" type="text/javascript"></script>
+<script src="../src/VideoRecorderJS.js" type="text/javascript"></script>
 
 <script type="text/javascript">
 
@@ -40,8 +45,8 @@
 
     var virec = new VideoRecorderJS.init(
             {
-                resize: 0.8, // recorded video dimentions are 0.4 times smaller than the original
-                webpquality: 0.5, // chrome and opera support webp imags, this is about the aulity of a frame
+                resize: 1, // recorded video dimentions are 0.4 times smaller than the original
+                webpquality: 0.99, // chrome and opera support webp imags, this is about the aulity of a frame
                 framerate: 15,  // recording frame rate
                 videotagid: "viredemovideoele",
                 videoWidth: "640",
