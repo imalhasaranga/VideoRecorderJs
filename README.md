@@ -5,7 +5,6 @@ Single Library for Client Side Video & Audio Recording
 Older Version of this Project was supporting video audio recording mechanisam implemented using whammy.js and Recorder.js but with the 1.0.0 version release
 We have used [MediaStream Recording](https://www.w3.org/TR/mediastream-recording/) Spec as the main recroder but legacy browsers which does not support for this new spec will fallback to old recroder implementation, below are the browsers that are currently supported by the script
 
-* Microsoft Edge
 * Chrome
 * Firefox
 * Opera
