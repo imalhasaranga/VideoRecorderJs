@@ -2,6 +2,11 @@
 
 All changes to `VideoAudioRecorderJs` will be documented in here
 
+### Minor Bug Fixes
+- demo bug fixed
+
+## 1.0.1 - 2017-02-22
+
 ### Old Repo Updated with 1.0.0 Release
 - This is the first release version of VideoAudioRecorderJs
 
