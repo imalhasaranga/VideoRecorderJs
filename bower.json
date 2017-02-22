@@ -1,5 +1,6 @@
 {
   "name": "videorecorderjs",
+  "version" : "1.0.1",
   "description": "html5 video recording library",
   "main": "index.js",
   "authors": [
