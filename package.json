@@ -31,5 +31,8 @@
   "bugs": {
     "url": "https://github.com/imalhasaranga/Html5_Video_Audio_Recorder/issues"
   },
-  "homepage": "https://github.com/imalhasaranga/Html5_Video_Audio_Recorder#readme"
+  "homepage": "https://github.com/imalhasaranga/Html5_Video_Audio_Recorder#readme",
+  "dependencies": {
+    "promise-polyfill": "^7.1.0"
+  }
 }

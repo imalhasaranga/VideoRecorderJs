@@ -1,16 +1,20 @@
 var VideoRecorderJS = (function () {
 
 
-
+  
 
     /*** Web Recoder Script  ***/
+    var canvas;
+    var ctx;
     var recorder;
 
     var videoAudioSync = null;
+    var recrodinterval = null;
 
     var quality = 1;
     var framerate = 15;
     var webp_quality = 0.8;
+    var frames = [];
 
     var audioBlobURL;
     var videoBlobURL;
@@ -22,6 +26,7 @@ var VideoRecorderJS = (function () {
     /*** MediaRecorder Api  ***/
 
     var mediaRecorder = null;
+    var chunks = [];
     var recordedBlob = null;
     var callbackFunc = null;
 
@@ -31,11 +36,13 @@ var VideoRecorderJS = (function () {
     var audio_context;
 
 
-    
-    var mediaRecorderType;
-
-
+    var default_width = "320";
+    var default_height = "240";
+    var isMediaRecorder = false;
+    var logs = true;
+    var mediaRecorderType = "auto";
     var UploadingURL = "";
+    var workerPath = null;
 
 
     var audioElement;
@@ -51,29 +58,40 @@ var VideoRecorderJS = (function () {
     var parametername = "";
 
 
-    var logger = new Logger();
-    var config = null;
-
     var startTime = null;
 
-    function HTML5Recorder(configs, streamready, streamerror) {
+    function HTML5Recorder(options, streamready, streamerror) {
 
-        UtilityHelper.notEmpty(configs.videotagid,"Video Tag is Undefined in the Options Object.... Quiting");
-        config = configs;
+        var vw = (options.videoWidth !== null) ? options.videoWidth + "" : default_width;
+        var vh = (options.videoHeight !== null) ? options.videoHeight + "" : default_height;
 
-        mediaRecorderType = UtilityHelper.typeFixGetRecType(configs.mediaRecorderType);
-        audioElement = UtilityHelper.getElement(configs.audiotagid,"audio");
-        videoElement = UtilityHelper.getElement(configs.videotagid,"video");
-        videoElement.autoplay = true;
-        videoElement.muted = true;
-        
-        
+        quality = (options.resize !== null) ? parseFloat(options.resize) : quality;
+        webp_quality = (options.webpquality != null) ? options.webpquality : webp_quality;
+        framerate = (options.framerate !== null) ? options.framerate : framerate;
+        logs = (options.log) ? options.log : logs;
+        mediaRecorderType = (options.mediaRecorderType !== null) ? options.mediaRecorderType : mediaRecorderType;
+        workerPath = (options.workerPath != null) ? options.workerPath : workerPath;
+
+        if (options.videotagid !== null) {
+            videotagid = options.videotagid;
+        } else {
+            throw "Video Tag is Undefined in the Options Object.... Quiting";
+        }
+
+
+        audioElement = document.querySelector('audio');
+        videoElement = document.getElementById(options.videotagid);
+        videoElement.width = vw;
+        videoElement.height = vh;
+        canvas = document.createElement('canvas');
+        ctx = canvas.getContext('2d');
+
         initRecroder(streamready,streamerror);
-    };
-
+    }
 
     function initRecroder(streamready,streamerror){
-
+        videoElement.autoplay = true;
+        videoElement.muted = true;
         try {
             streamEnded = false;
             audio_context = new AudioContext();
@@ -88,20 +106,61 @@ var VideoRecorderJS = (function () {
                         this.getAudioTracks().forEach(function (track) {
                             track.stop();
                         });
-                        this.getVideoTracks().forEach(function (track) {
+                        this.getVideoTracks().forEach(function (track) { //in case... :)
                             track.stop();
                         });
                         streamEnded = true;
                     };
 
                     videoElement.src = window.URL.createObjectURL(stream);
-                    config.sampleRate = audio_context.sampleRate;
 
-                    if (mediaRecorderType == IVideoRecorder.MSR) {
-                        mediaRecorder = new MediaStreamRecorder(mediaStream);
+                    var isMediaRec = true;
+                    if(mediaRecorderType !== null){
+                        if(mediaRecorderType == "webscript"){
+                            isMediaRec = false;
+                        }else if(mediaRecorderType == "mediarecorder"){
+                            isMediaRec = true;
+                        }
+                    }
+
+                    if (isMediaRec && typeof MediaRecorder == 'function') {
+                        isMediaRecorder = true;
+                        mediaRecorder = new MediaRecorder(stream);
+                        chunks = [];
+                        recordedBlob = null;
+                        callbackFunc = null;
+
+                        mediaRecorder.ondataavailable = function (e) {
+                            chunks.push(e.data);
+                        };
+
+                        mediaRecorder.onstop = function (e) {
+                            recordedBlob = new Blob(chunks, {'type': 'video/webm'});
+                            callbackFunc([
+                                {type: "video", blob: recordedBlob, mimeType: "video/webm", extension: "webm"}
+                            ]);
+                            videoBlobURL = window.URL.createObjectURL(recordedBlob);
+                            videoElement.src = null;
+                            var spentTime = (new Date().getTime() - startTime) / 1000;
+                            onVideo(videoBlobURL,parseInt(spentTime/2));
+                            lg("Finished Time : " + spentTime);
+                        };
+
                     } else {
-                        config.videoElement = videoElement;
-                        mediaRecorder = new AMediaStreamRecorder(mediaStream,config);
+                        reinit();
+                        videoBlobURL = null;
+                        audioBlobURL = null;
+                        if(recorder){
+                            recorder.clear();
+                        }
+
+                        var input = audio_context.createMediaStreamSource(stream);
+                        isMediaRecorder = false;
+                        var zeroGain = audio_context.createGain();
+                        zeroGain.gain.value = 0;
+                        input.connect(zeroGain);
+                        zeroGain.connect(audio_context.destination);
+                        recorder = new Recorder(input,{workerPath : workerPath});
                     }
                     streamready && streamready();
 
@@ -117,16 +176,34 @@ var VideoRecorderJS = (function () {
     }
 
     function startCapture(){
-
-            
+        if (isMediaRecorder) {
+            chunks = [];
+            recordedBlob = null;
+            mediaRecorder.start();
+        } else {
+            var newWidth = canvas.width = parseInt(quality * videoElement.clientWidth);
+            var newHeight = canvas.height = parseInt(quality * videoElement.clientHeight);
+            var timmer = parseInt(1000 / framerate);
             recorder && recorder.record();
 
-            
-        
+            recrodinterval = setInterval(function () {
+                if(videoElement.readyState === 4) {
+                    ctx.drawImage(videoElement, 0, 0, newWidth, newHeight);
+                    if (webp_quality == 1.0) {
+                        frames.push(canvas.toDataURL('image/webp'));
+                    } else {
+                        frames.push(canvas.toDataURL('image/webp', webp_quality));
+                    }
+                }
+            }, timmer);
+        }
+
+        lg('Recording audio and video... Using ' + (isMediaRecorder ? "Native MeidaRecorder" : " WebRecorder Script"));
     }
 
 
     HTML5Recorder.prototype.startCapture = function () {
+        startTime = new Date().getTime();
         if(streamEnded){
             initRecroder(function(){
                 startCapture();
@@ -137,14 +214,25 @@ var VideoRecorderJS = (function () {
     };
 
     function stopCapture(removeMediastrema,oncapturefinish){
-       
-            
-                
+        if (isMediaRecorder) {
+            callbackFunc = oncapturefinish;
+            if (mediaRecorder.state != "inactive") {
+                mediaRecorder.stop();
+            }
+        } else {
+            if(frames.length > 0) {
+                if (recrodinterval != null) {
+                    clearInterval(recrodinterval);
+                }
                 if (videoAudioSync != null) {
                     clearTimeout(videoAudioSync);
                 }
                 var audioBlob = null;
                 var videoBlob = null;
+                var spentTime = (new Date().getTime() - startTime) / 1000;
+                var localframerate = parseInt(frames.length) / spentTime;
+
+                lg(localframerate + " Time : " + spentTime + " Frames : " + frames.length);
 
                 recorder && recorder.stop();
                 recorder && recorder.exportWAV(function (blob) {
@@ -155,13 +243,13 @@ var VideoRecorderJS = (function () {
                     }
                     recorder.clear();
                 });
-                
+                videoBlob = new Whammy.fromImageArray(frames, localframerate);
                 if ((audioBlob != null) && (videoBlob != null)) {
                     capturefinish(audioBlob, videoBlob, oncapturefinish);
                     onVideo(videoBlobURL,parseInt(spentTime/2));
                 }
-            
-        
+            }
+        }
 
         if(removeMediastrema){
             mediaStream && mediaStream.stop();
@@ -182,22 +270,33 @@ var VideoRecorderJS = (function () {
 
 
     HTML5Recorder.prototype.play = function () {
-        reinit();
-        videoElement.muted = false;
-        videoElement.autoplay = true;
-        videoElement.src = videoBlobURL;
-        audioElement.src = audioBlobURL;
-        videoAudioSync = setTimeout(function () {
-            audioElement.currentTime = videoElement.currentTime;
-            audioElement.play();
-        }, 100);
+        if (isMediaRecorder) {
+            videoElement.muted = false;
+            videoElement.autoplay = true;
+            videoElement.src = videoBlobURL;
+        } else {
+            reinit();
+            videoElement.muted = false;
+            videoElement.autoplay = true;
+            videoElement.src = videoBlobURL;
+            audioElement.src = audioBlobURL;
+            videoAudioSync = setTimeout(function () {
+                audioElement.currentTime = videoElement.currentTime;
+                audioElement.play();
+            }, 100);
+        }
 
     };
 
     function clearRecording(){
-        reinit();
-        videoBlobURL = null;
-        audioBlobURL = null;
+        if (isMediaRecorder) {
+            chunks = [];
+            recordedBlob = null;
+        } else {
+            reinit();
+            videoBlobURL = null;
+            audioBlobURL = null;
+        }
     }
 
     HTML5Recorder.prototype.clearRecording = function () {
@@ -252,15 +351,24 @@ var VideoRecorderJS = (function () {
     }
 
     function reinit() {
+
+        if (recrodinterval != null) {
+            clearInterval(recrodinterval);
+        }
         if (videoAudioSync != null) {
             clearTimeout(videoAudioSync);
         }
+        frames = [];
     }
 
     /*------------------------------*/
 
 
-    
+    function lg(data) {
+        if (logs) {
+            console.log(data);
+        }
+    }
 
 
     function sendRequest(blobar, namear) {
@@ -314,6 +422,7 @@ var VideoRecorderJS = (function () {
 
 
     function uploadComplete(evt) {
+        lg("Upload Success");
         if (evt.target.responseText != "") {
             alert(evt.target.responseText);
         }
