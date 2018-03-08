@@ -44,7 +44,7 @@ MediaStreamRecorder.prototype.requestBlob = function () {
             resolve(self.recordedBlob);
         } else {
             self.stopPromise && self.stopPromise.then(function (blob) {
-                resolve(blob);
+                resolve([{type: "video", blob : blob, extension : "webm"}]);
             })
         }
     });
