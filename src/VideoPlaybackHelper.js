@@ -28,28 +28,31 @@ var VideoPlaybackHelper = function (videoElement,audioElement) {
         });
         var videoBlobURL;
         var audioBlobURL;
-        if(this.playbackType == 1){
+        if(video.blob){
             videoBlobURL = window.URL.createObjectURL(video.blob);
-            this.videoElement.autoplay = false;
-        }else if(this.playbackType == 2){
+        }
+        if(audio.blob){
             audioBlobURL = window.URL.createObjectURL(audio.blob);
             this.audioElement.src = audioBlobURL;
         }
+        this.videoElement.autoplay = false;
         this.videoElement.src = videoBlobURL;
     };
 
     this.play = function () {
         var self = this;
+        this.videoElement.muted = false;
         if(this.playbackType == 1){
-            this.videoElement.muted = false;
             this.videoElement.play();
         }else{
-            this.videoElement.muted = false;
-            this.videoElement.autoplay = true;
             this.videoAudioSync = setTimeout(function () {
-                self.currentTime = self.videoElement.currentTime;
+                self.audioElement.currentTime = self.videoElement.currentTime;
                 self.audioElement.play();
             }, 100);
+            this.videoElement.playing = function (e) {
+                console.log(e)
+            };
+            this.videoElement.play();
         }
     }
 

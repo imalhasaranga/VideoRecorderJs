@@ -3,7 +3,7 @@
 </head>
 <body>
 <div id="videorecorder">
-    <video id="viredemovideoele"></video>
+    <video id="viredemovideoele" ></video>
     <span style="font-size:20px;" id="countdown"></span>
 </div>
 
@@ -55,10 +55,10 @@
     var virec = new VideoRecorderJS.init(
             {
                 resize: 1, // recorded video dimentions are 0.4 times smaller than the original
-                webpquality: 0.99, // chrome and opera support webp imags, this is about the aulity of a frame
+                webpquality: 1, // chrome and opera support webp imags, this is about the aulity of a frame
                 framerate: 15,  // recording frame rate
                 videotagid: "viredemovideoele",
-                mediaRecorderType : "ALTERNATIVE_MSR",
+                mediaRecorderType: "ALTERNATIVE_MSR",
                 log: true,
             },
             function () {

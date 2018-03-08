@@ -45,7 +45,7 @@ var AudioRecorder = function (mediaStream, isSterio, deviceSupportedSampleRate) 
         this.stop();
         return new Promise(function (resolve) {
             stopRecording(function (blob) {
-                resolve(blob, "audio/wav", "wav");
+                resolve({blob : blob, mimeType : blob.type , extension : "wav"});
             });
         });
     };
@@ -56,8 +56,8 @@ var AudioRecorder = function (mediaStream, isSterio, deviceSupportedSampleRate) 
         recording = false;
 
         // to make sure onaudioprocess stops firing
-        audioInput.disconnect();
-        jsAudioNode.disconnect();
+        audioInput && audioInput.disconnect();
+        jsAudioNode && jsAudioNode.disconnect();
 
         mergeLeftRightBuffers({
             sampleRate: sampleRate,

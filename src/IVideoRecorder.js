@@ -11,11 +11,17 @@ IVideoRecorder.prototype.stop = function () {
     throw "Not Implemented function : stop()";
 };
 IVideoRecorder.prototype.requestBlob = function () {
-    throw "Not Implemented function : getBlob()";
+    throw "Not Implemented function : requestBlob()";
 };
+
+IVideoRecorder.prototype.getDuration = function () {
+    throw "Not Implemented function : getDuration()";
+};
+
 IVideoRecorder.prototype.getType = function () {
     throw "Not Implemented function : getType()";
 };
+
 
 
 IVideoRecorder.AMSR = "ALTERNATIVE_MSR";
