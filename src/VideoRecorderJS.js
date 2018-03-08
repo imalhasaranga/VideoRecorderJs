@@ -1,3 +1,12 @@
+/*
+ *
+ * Articls
+ * https://zhirzh.github.io/2017/09/02/mediarecorder/
+ * https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder/MediaRecorder
+ * https://developers.google.com/web/updates/2016/01/mediarecorder
+ * https://github.com/webrtc/samples/tree/gh-pages/src/content/getusermedia/record
+ * */
+
 var VideoRecorderJS = (function () {
     var logger = new Logger();
 
@@ -10,6 +19,8 @@ var VideoRecorderJS = (function () {
     var mediaStream;
     var videoPlaybackHelper;
     var startTime = null;
+
+    var RecorderStatus;  //READY, RECORDING, STOPED_RECORDING, PLAYING,
 
     function HTML5Recorder(configs, streamready, streamerror) {
 
@@ -35,7 +46,7 @@ var VideoRecorderJS = (function () {
         try {
             streamEnded = false;
             var audio_context = new AudioContext();
-            navigator.getUserMedia(
+            getUserMedia(
                 {
                     audio: true,
                     video: true
@@ -51,9 +62,9 @@ var VideoRecorderJS = (function () {
                         });
                         streamEnded = true;
                     };
-
-                    videoElement.src = window.URL.createObjectURL(stream);
+                    atttach();
                     config.sampleRate = audio_context.sampleRate;
+                    RecorderStatus = "READY";
 
                     if (mediaRecorderType == IVideoRecorder.MSR) {
                         logger.debug("Video Recording Strategy : MSR");
@@ -78,6 +89,8 @@ var VideoRecorderJS = (function () {
 
 
     HTML5Recorder.prototype.startCapture = function () {
+        prepareForRecorde();
+        atttach();
         if (streamEnded) {
             initRecroder(function () {
                 mediaRecorder.start();
@@ -85,50 +98,46 @@ var VideoRecorderJS = (function () {
         } else {
             mediaRecorder.start();
         }
+        RecorderStatus = "RECORDING";
     };
 
-    HTML5Recorder.prototype.stopCapture = function (oncapturefinish) {
-        stopCapture(true, oncapturefinish);
-    };
-
-    function stopCapture(removeMediastrema, oncapturefinish) {
-        videoPlaybackHelper.stopAndClearPlayback();
-        mediaRecorder.stop();
-        mediaRecorder.requestBlob().then(function (mediaObjectArray) {
-            videoPlaybackHelper.setMedia(mediaObjectArray)
-            oncapturefinish(mediaObjectArray);
-        });
-        if (removeMediastrema) {
-            mediaStream && mediaStream.stop();
+    HTML5Recorder.prototype.stopCapture = function (oncapturefinish,detachStream) {
+        if(RecorderStatus == "RECORDING"){
+            stopCapture(detachStream, oncapturefinish);
+            RecorderStatus = "STOPED_RECORDING";
         }
-    }
-
+    };
 
     HTML5Recorder.prototype.play = function () {
-        videoPlaybackHelper.play();
+        if(RecorderStatus == "STOPED_RECORDING" || RecorderStatus == "PLAYBACK"){
+            videoPlaybackHelper.play();
+            RecorderStatus = "PLAYBACK";
+        }
     };
 
-
     HTML5Recorder.prototype.clearRecording = function () {
-        reinit();
-        stopCapture(false, function () {
-        });
-        if (streamEnded) {
-            initRecroder(function () {
+        if(streamEnded){
+            stopCapture(false,function(){});
+            initRecroder(function(){
             });
+        }else{
+            stopCapture(false,function(){});
         }
+    };
+
+    HTML5Recorder.prototype.detachHardwareRes = function () {
+        mediaStream && mediaStream.stop();
     };
 
     HTML5Recorder.prototype.getTotalSizeMB = function () {
         return mediaRecorder.getTotalSizeMB();
     };
 
-    HTML5Recorder.prototype.uploadData = function (options, onupload) {
-
+    HTML5Recorder.prototype.getRecorderStatus = function () {
+            return RecorderStatus;
     };
 
-
-    function downloadBlob(blob,name) {
+    HTML5Recorder.prototype.downloadBlob = function (blob, name) {
         var url = window.URL.createObjectURL(blob);
         var a = document.createElement('a');
         a.style.display = 'none';
@@ -137,20 +146,55 @@ var VideoRecorderJS = (function () {
         document.body.appendChild(a);
         a.click();
         setTimeout(function () {
-
             document.body.removeChild(a);
-
             window.URL.revokeObjectURL(url);
-
         }, 100);
+    };
+
+    HTML5Recorder.prototype.uploadData = function (options, onupload) {
+
+    };
+
+    function stopCapture(removeMediastrema, oncapturefinish) {
+        videoPlaybackHelper.stopAndClearPlayback();
+        mediaRecorder.stop();
+        mediaRecorder.requestBlob().then(function (mediaObjectArray) {
+            deattach();
+            videoPlaybackHelper.setMedia(mediaObjectArray);
+            oncapturefinish(mediaObjectArray);
+        });
+        if (removeMediastrema) {
+            mediaStream && mediaStream.stop();
+        }
+    }
+    
+    function atttach() {
+        /*
+         URL.createObjectURL(stream) is depricated
+         https://www.chromestatus.com/features/5618491470118912
+         */
+        if (typeof videoElement.srcObject == "object") {
+            videoElement.srcObject = mediaStream;
+        } else {
+            videoElement.src = window.URL.createObjectURL(mediaStream);
+        }
+    }
+    
+    function deattach() {
+        if (typeof videoElement.srcObject == "object") {
+            videoElement.srcObject = null;
+        } else {
+            videoElement.src = null;
+        }
     }
 
-    //-------------------------------------------------------------------------------------------
-
-
-    function reinit() {
-        if (videoAudioSync != null) {
-            clearTimeout(videoAudioSync);
+    function getUserMedia(options, sucess, errror) {
+        if (navigator.mediaDevices.getUserMedia) {
+            logger.debug("whichUserMedia :  navigator.mediaDevices.getUserMedia");
+            navigator.mediaDevices.getUserMedia(options).then(sucess).catch(errror);
+        } else if (navigator.getUserMedia) {
+            logger.debug("whichUserMedia :  navigator.getUserMedia");
+            navigator.getUserMedia(options, sucess, errror);
         }
     }
 

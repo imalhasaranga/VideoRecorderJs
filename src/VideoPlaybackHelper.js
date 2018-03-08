@@ -36,7 +36,7 @@ var VideoPlaybackHelper = function (videoElement,audioElement) {
             this.audioElement.src = audioBlobURL;
         }
         this.videoElement.autoplay = false;
-        this.videoElement.src = videoBlobURL;
+        this.videoElement.src = videoBlobURL;;
     };
 
     this.play = function () {

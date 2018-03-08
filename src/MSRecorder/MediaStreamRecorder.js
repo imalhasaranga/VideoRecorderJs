@@ -23,7 +23,7 @@ var MediaStreamRecorder = function (mediaStream) {
 
     self.stopPromise = new Promise(function (resolve) {
         self.recorder.onstop = function (e) {
-            var recordedBlob = new Blob(self.chunks, {'type': supportedMIMEType});
+            var recordedBlob = new Blob(self.chunks);
             resolve(recordedBlob);
         }
     });
@@ -56,6 +56,7 @@ MediaStreamRecorder.prototype.requestBlob = function () {
     return new Promise(function (resolve, reject) {
         self.stopPromise && self.stopPromise.then(function (blob) {
             self.size = blob.size;
+            self.chunks = [];
             resolve([{type: "video", blob: blob, extension: "webm"}]);
         })
     });
@@ -75,6 +76,7 @@ MediaStreamRecorder.prototype.getType = function () {
     this.logger.debug("MSR getType : " + IVideoRecorder.MSR);
     return IVideoRecorder.MSR;
 };
+
 
 
 MediaStreamRecorder.getSupportedMIMEType = function () {
