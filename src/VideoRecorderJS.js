@@ -1,41 +1,17 @@
 var VideoRecorderJS = (function () {
 
 
-
-
-    /*** Web Recoder Script  ***/
-    var recorder;
-
     var videoAudioSync = null;
 
-    var quality = 1;
-    var framerate = 15;
-    var webp_quality = 0.8;
-
-    var audioBlobURL;
-    var videoBlobURL;
-    var audioBlobData;
-    var videoBlobData;
-
-    /*** Web Recoder Script  End***/
-
-    /*** MediaRecorder Api  ***/
 
     var mediaRecorder = null;
-    var recordedBlob = null;
-    var callbackFunc = null;
 
-    /*** MediaRecorder Api  End ***/
+
     var streamEnded = false;
     var mediaStream;
-    var audio_context;
 
 
-    
     var mediaRecorderType;
-
-
-    var UploadingURL = "";
 
 
     var audioElement;
@@ -43,7 +19,7 @@ var VideoRecorderJS = (function () {
 
 
     //----- blob upload parameters --------------------
-
+    var UploadingURL = "";
     var BlobSlizeArray = [];
     var CurrentBlobUpload = 0;
     var chunksize = 1048576;
@@ -58,25 +34,25 @@ var VideoRecorderJS = (function () {
 
     function HTML5Recorder(configs, streamready, streamerror) {
 
-        UtilityHelper.notEmpty(configs.videotagid,"Video Tag is Undefined in the Options Object.... Quiting");
+        UtilityHelper.notEmpty(configs.videotagid, "Video Tag is Undefined in the Options Object.... Quiting");
         config = configs;
 
         mediaRecorderType = UtilityHelper.typeFixGetRecType(configs.mediaRecorderType);
-        audioElement = UtilityHelper.getElement(configs.audiotagid,"audio");
-        videoElement = UtilityHelper.getElement(configs.videotagid,"video");
+        audioElement = UtilityHelper.getElement(configs.audiotagid, "audio");
+        videoElement = UtilityHelper.getElement(configs.videotagid, "video");
         videoElement.autoplay = true;
         videoElement.muted = true;
-        
-        
-        initRecroder(streamready,streamerror);
+
+
+        initRecroder(streamready, streamerror);
     };
 
 
-    function initRecroder(streamready,streamerror){
+    function initRecroder(streamready, streamerror) {
 
         try {
             streamEnded = false;
-            audio_context = new AudioContext();
+            var audio_context = new AudioContext();
             navigator.getUserMedia(
                 {
                     audio: true,
@@ -101,7 +77,7 @@ var VideoRecorderJS = (function () {
                         mediaRecorder = new MediaStreamRecorder(mediaStream);
                     } else {
                         config.videoElement = videoElement;
-                        mediaRecorder = new AMediaStreamRecorder(mediaStream,config);
+                        mediaRecorder = new AMediaStreamRecorder(mediaStream, config);
                     }
                     streamready && streamready();
 
@@ -116,69 +92,52 @@ var VideoRecorderJS = (function () {
         }
     }
 
-    function startCapture(){
-
-            
-            recorder && recorder.record();
-
-            
-        
-    }
-
 
     HTML5Recorder.prototype.startCapture = function () {
-        if(streamEnded){
-            initRecroder(function(){
-                startCapture();
+        if (streamEnded) {
+            initRecroder(function () {
+                mediaRecorder.start();
             });
-        }else{
-            startCapture();
+        } else {
+            mediaRecorder.start();
         }
     };
 
-    function stopCapture(removeMediastrema,oncapturefinish){
-       
-            
-                
-                if (videoAudioSync != null) {
-                    clearTimeout(videoAudioSync);
-                }
-                var audioBlob = null;
-                var videoBlob = null;
+    HTML5Recorder.prototype.stopCapture = function (oncapturefinish) {
+        stopCapture(true, oncapturefinish);
+    };
 
-                recorder && recorder.stop();
-                recorder && recorder.exportWAV(function (blob) {
-                    audioBlob = blob;
-                    if ((audioBlob != null) && (videoBlob != null)) {
-                        capturefinish(blob, videoBlob, oncapturefinish);
-                        onVideo(videoBlobURL,parseInt(spentTime/2));
-                    }
-                    recorder.clear();
-                });
-                
-                if ((audioBlob != null) && (videoBlob != null)) {
-                    capturefinish(audioBlob, videoBlob, oncapturefinish);
-                    onVideo(videoBlobURL,parseInt(spentTime/2));
-                }
-            
-        
+    function stopCapture(removeMediastrema, oncapturefinish) {
+        if (videoAudioSync != null) {
+            clearTimeout(videoAudioSync);
+        }
 
-        if(removeMediastrema){
+        mediaRecorder.stop();
+        mediaRecorder.requestBlob().then(function (mediaObjectArray) {
+
+            videoBlobURL = window.URL.createObjectURL(videoblob);
+            audioBlobURL = window.URL.createObjectURL(audioblob);
+            videoElement.autoplay = false;
+            videoElement.src = videoBlobURL;
+            reinit();
+            oncapturefinish(mediaObjectArray);
+
+        });
+        if (removeMediastrema) {
             mediaStream && mediaStream.stop();
         }
     }
 
-    function onVideo(bloburl,time){
-        videoElement.muted = false;
-        videoElement.autoplay = false;
-        videoElement.src = bloburl;
-        videoElement.currentTime = time ? time : parseInt(videoElement.duration/2);
+    function setUpPlay(mediaObject){
+
+        /*
+        * videoElement.muted = false;
+         videoElement.autoplay = false;
+         videoElement.src = bloburl;
+         videoElement.currentTime = time ? time : parseInt(videoElement.duration / 2);
+        *
+        * */
     }
-
-
-    HTML5Recorder.prototype.stopCapture = function (oncapturefinish) {
-        stopCapture(true,oncapturefinish);
-    };
 
 
     HTML5Recorder.prototype.play = function () {
@@ -194,7 +153,7 @@ var VideoRecorderJS = (function () {
 
     };
 
-    function clearRecording(){
+    function clearRecording() {
         reinit();
         videoBlobURL = null;
         audioBlobURL = null;
@@ -202,14 +161,16 @@ var VideoRecorderJS = (function () {
 
     HTML5Recorder.prototype.clearRecording = function () {
         var self = this;
-        if(streamEnded){
-            stopCapture(false,function(){});
-            clearRecording();
-            initRecroder(function(){
+        if (streamEnded) {
+            stopCapture(false, function () {
             });
-        }else{
             clearRecording();
-            stopCapture(false,function(){});
+            initRecroder(function () {
+            });
+        } else {
+            clearRecording();
+            stopCapture(false, function () {
+            });
         }
     };
 
@@ -235,22 +196,6 @@ var VideoRecorderJS = (function () {
     //-------------------------------------------------------------------------------------------
 
 
-    /* WebRecorder Script Fuctions */
-
-    function capturefinish(audioblob, videoblob, oncapturefinish) {
-        audioBlobData = audioblob;
-        videoBlobData = videoblob;
-        videoBlobURL = window.URL.createObjectURL(videoblob);
-        audioBlobURL = window.URL.createObjectURL(audioblob);
-        videoElement.autoplay = false;
-        videoElement.src = videoBlobURL;
-        reinit();
-        oncapturefinish([
-            {type: "video", blob: videoblob, mimeType: "video/webm", extension: "webm"},
-            {type: "audio", blob: audioblob, mimeType: "audio/wav", extension: "wav"}
-        ]);
-    }
-
     function reinit() {
         if (videoAudioSync != null) {
             clearTimeout(videoAudioSync);
@@ -258,9 +203,6 @@ var VideoRecorderJS = (function () {
     }
 
     /*------------------------------*/
-
-
-    
 
 
     function sendRequest(blobar, namear) {

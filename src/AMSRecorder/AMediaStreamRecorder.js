@@ -28,18 +28,30 @@ var AMediaStreamRecorder = function (mediaStream,configs) {
         framerate : self.framerate,
         webp_quality : self.webp_quality
     });
+    
 };
 
 AMediaStreamRecorder.prototype.start = function () {
-
+    this.audioRecorder.start();
+    this.videoRecorder.startCapture();
 };
 
 AMediaStreamRecorder.prototype.stop = function () {
-
+    this.audioRecorder.stop();
+    this.videoRecorder.stopCapture();
 };
 
 AMediaStreamRecorder.prototype.requestBlob = function () {
-
+    var self = this;
+    return new Promise(function(resolve){
+        var blobInfo = self.videoRecorder.getBlob();
+        self.audioRecorder.requestBlob().then(function (blob, mime, extension) {
+            resolve([
+                { type: "audio", blob : blob,  mimeType : mime, extension : extension },
+                { type: "video", blob : blobInfo.blob, mimeType : blobInfo.mimeType , extension : blobInfo.extension }
+            ]);
+        });
+    });
 };
 
 AMediaStreamRecorder.prototype.getType = function () {

@@ -32,14 +32,21 @@ VideoCopier.prototype.startCapture = function () {
 };
 
 VideoCopier.prototype.stopCapture = function () {
-    var videoBlob = null;
+    this.videoBlob = null;
     if(this.frames.length > 0) {
         this.recrodinterval && clearInterval(this.recrodinterval);
         var spentTime = (new Date().getTime() - this.startTime) / 1000;
         var localframerate = parseInt(frames.length) / spentTime;
-        videoBlob = new Whammy.fromImageArray(this.frames, localframerate);
+        this.videoBlob = new Whammy.fromImageArray(this.frames, localframerate);
     }
-    return videoBlob;
+    return this.videoBlob;
+};
+
+VideoCopier.prototype.getBlob = function () {
+    var blob = this.videoBlob;
+    this.videoBlob = null;
+    this.reset();
+    return {blob : blob, mimeType : "video/webm" , extension : "webm"};
 };
 
 VideoCopier.prototype.reset = function () {

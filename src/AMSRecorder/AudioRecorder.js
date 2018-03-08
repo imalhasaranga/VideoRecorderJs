@@ -41,7 +41,7 @@ var AudioRecorder = function (mediaStream, isSterio, deviceSupportedSampleRate) 
     /* callback function is passed to getWAVBlob() thinking that in the future we might export some of the code to a webworker
      * so then we might not be able to do return
      * */
-    this.getBlob = function () {
+    this.requestBlob = function () {
         this.stop();
         return new Promise(function (resolve) {
             stopRecording(function (blob) {
