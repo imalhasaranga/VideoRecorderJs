@@ -31,6 +31,9 @@ var AMediaStreamRecorder = function (mediaStream,configs) {
     
 };
 
+AMediaStreamRecorder.prototype = Object.create(IVideoRecorder.prototype);
+AMediaStreamRecorder.prototype.constructor = AMediaStreamRecorder;
+
 AMediaStreamRecorder.prototype.start = function () {
     this.audioRecorder.start();
     this.videoRecorder.startCapture();
@@ -58,6 +61,3 @@ AMediaStreamRecorder.prototype.getType = function () {
     return IVideoRecorder.MSR;
 };
 
-
-AMediaStreamRecorder.prototype = Object.create(IVideoRecorder.prototype);
-AMediaStreamRecorder.prototype.constructor = AMediaStreamRecorder;

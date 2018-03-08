@@ -9,61 +9,61 @@ var MediaStreamRecorder = function (mediaStream) {
 
     this.recorder = new MediaRecorder(mediaStream);
     this.chunks = [];
-    this.recordedBlob = null;
     this.stopPromise = null;
 
     var self = this;
     self.recorder.ondataavailable = function (e) {
         self.chunks.push(e.data);
     };
-    self.recorder.onstop = function (e) {
-        self.stopPromise = new Promise(function (resolve) {
-            self.recordedBlob = new Blob(self.chunks, {'type': MediaStreamRecorder.getSupportedMIMEType()});
-            resolve(self.recordedBlob);
-        });
-    }
+
+    self.stopPromise = new Promise(function (resolve) {
+        self.recorder.onstop = function (e) {
+            var recordedBlob = new Blob(self.chunks, {'type': MediaStreamRecorder.getSupportedMIMEType()});
+            resolve(recordedBlob);
+        }
+    });
+
 
 };
 
+MediaStreamRecorder.prototype = Object.create(IVideoRecorder.prototype);
+MediaStreamRecorder.prototype.constructor = MediaStreamRecorder;
+
 MediaStreamRecorder.prototype.start = function () {
+    this.logger.debug("MSR recording start");
     this.chunks = [];
-    this.recordedBlob = null;
     this.recorder.start();
 };
 
 MediaStreamRecorder.prototype.stop = function () {
+    this.logger.debug("MSR recording stop");
     if (this.recorder.state != "inactive") {
         this.recorder.stop();
     }
 };
 
 MediaStreamRecorder.prototype.requestBlob = function () {
+    this.logger.debug("MSR requesting recorded blob...");
     var self = this;
     return new Promise(function (resolve, reject) {
-        if (self.recordedBlob) {
-            resolve(self.recordedBlob);
-        } else {
-            self.stopPromise && self.stopPromise.then(function (blob) {
-                resolve([{type: "video", blob : blob, extension : "webm"}]);
-            })
-        }
+        self.stopPromise && self.stopPromise.then(function (blob) {
+            resolve([{type: "video", blob: blob, extension: "webm"}]);
+        })
     });
 };
 
 MediaStreamRecorder.prototype.getType = function () {
+    this.logger.debug("MSR getType : " + IVideoRecorder.MSR);
     return IVideoRecorder.MSR;
 };
 
 
-MediaStreamRecorder.prototype = Object.create(IVideoRecorder.prototype);
-MediaStreamRecorder.prototype.constructor = MediaStreamRecorder;
-
 MediaStreamRecorder.getSupportedMIMEType = function () {
     if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
-        return {mimeType: 'video/webm; codecs=vp9'};
+        return 'video/webm; codecs=vp9'
     } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8')) {
-        return {mimeType: 'video/webm; codecs=vp8'};
+        return 'video/webm; codecs=vp8'
     } else {
-        return {mimeType: 'video/webm'};
+        return 'video/webm';
     }
 };

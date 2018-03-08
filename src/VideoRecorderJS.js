@@ -19,7 +19,7 @@ var VideoRecorderJS = (function () {
         mediaRecorderType = UtilityHelper.typeFixGetRecType(configs.mediaRecorderType);
         audioElement = UtilityHelper.getElement(configs.audiotagid, "audio");
         videoElement = UtilityHelper.getElement(configs.videotagid, "video");
-        videoPlaybackHelper = new VideoPlaybackHelper(videoElement);
+        videoPlaybackHelper = new VideoPlaybackHelper(videoElement,audioElement);
         prepareForRecorde();
         initRecroder(streamready, streamerror);
     }

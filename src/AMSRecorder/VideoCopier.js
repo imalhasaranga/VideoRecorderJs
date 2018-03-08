@@ -11,11 +11,11 @@ var VideoCopier = function (videoElement,config) {
     this.framerate = config.framerate ? config.framerate : 30;
     this.webp_quality = config.webp_quality ? config.webp_quality : 1.0;
 
-    this.newWidth = canvas.width = parseInt(this.quality * this.videoElement.clientWidth);
-    this.newHeight = canvas.height = parseInt(this.quality * this.videoElement.clientHeight);
     this.timer = parseInt(1000 / this.framerate);
     this.canvas = document.createElement("canvas");
     this.ctx = this.canvas.getContext('2d');
+    this.newWidth = this.canvas.width = parseInt(this.quality * this.videoElement.clientWidth);
+    this.newHeight = this.canvas.height = parseInt(this.quality * this.videoElement.clientHeight);
 };
 
 VideoCopier.prototype.startCapture = function () {
