@@ -3,7 +3,7 @@
 </head>
 <body>
 <div id="videorecorder">
-    <video id="viredemovideoele" ></video>
+    <video id="viredemovideoele"></video>
     <span style="font-size:20px;" id="countdown"></span>
 </div>
 
@@ -54,10 +54,9 @@
 
     var virec = new VideoRecorderJS.init(
             {
-                framerate: 15,  // recording frame rate
                 videotagid: "viredemovideoele",
-                //mediaRecorderType: "ALTERNATIVE_MSR",
-                log: true,
+                mediaRecorderType: "ALTERNATIVE_MSR",
+                logLevel: "debug"
             },
             function () {
                 //success callback. this will fire if browsers supports
@@ -135,7 +134,7 @@
 
     //------------------------------- few functions that demo, how to play with the api --------------------------
 
-    var countdowntime = 60;
+    var countdowntime = 300;
     var functioncalltime = 0;
     var timerInterval = null;
 

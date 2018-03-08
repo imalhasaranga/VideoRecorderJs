@@ -23,6 +23,11 @@ var VideoRecorderJS = (function () {
     var RecorderStatus;  //READY, RECORDING, STOPED_RECORDING, PLAYING,
 
     function HTML5Recorder(configs, streamready, streamerror) {
+        Logger.LEVEL = Logger.getLevel(configs.logLevel);
+        logger.debug("active");
+        logger.info("active");
+        logger.warn("active");
+        logger.error("active");
 
         UtilityHelper.notEmpty(configs.videotagid, "Video Tag is Undefined in the Options Object.... Quiting");
         config = configs;
