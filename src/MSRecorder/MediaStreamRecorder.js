@@ -7,9 +7,14 @@ var MediaStreamRecorder = function (mediaStream) {
     this.logger = new Logger();
     this.logger.info("Using MeidaStreamRecorder");
 
-    this.recorder = new MediaRecorder(mediaStream);
+    var supportedMIMEType = MediaStreamRecorder.getSupportedMIMEType();
+
+    this.recorder = new MediaRecorder(mediaStream, { mimeType : supportedMIMEType });
     this.chunks = [];
     this.stopPromise = null;
+    this.startTime = null;
+    this.endTime = null;
+    this.size = 0;
 
     var self = this;
     self.recorder.ondataavailable = function (e) {
@@ -18,7 +23,7 @@ var MediaStreamRecorder = function (mediaStream) {
 
     self.stopPromise = new Promise(function (resolve) {
         self.recorder.onstop = function (e) {
-            var recordedBlob = new Blob(self.chunks, {'type': MediaStreamRecorder.getSupportedMIMEType()});
+            var recordedBlob = new Blob(self.chunks, {'type': supportedMIMEType});
             resolve(recordedBlob);
         }
     });
@@ -31,12 +36,15 @@ MediaStreamRecorder.prototype.constructor = MediaStreamRecorder;
 
 MediaStreamRecorder.prototype.start = function () {
     this.logger.debug("MSR recording start");
+    this.startTime = new Date().getTime();
+    this.size = 0;
     this.chunks = [];
     this.recorder.start();
 };
 
 MediaStreamRecorder.prototype.stop = function () {
     this.logger.debug("MSR recording stop");
+    this.endTime = new Date().getTime();
     if (this.recorder.state != "inactive") {
         this.recorder.stop();
     }
@@ -47,10 +55,21 @@ MediaStreamRecorder.prototype.requestBlob = function () {
     var self = this;
     return new Promise(function (resolve, reject) {
         self.stopPromise && self.stopPromise.then(function (blob) {
+            self.size = blob.size;
             resolve([{type: "video", blob: blob, extension: "webm"}]);
         })
     });
 };
+
+MediaStreamRecorder.prototype.getDuration = function () {
+    return parseInt((this.endTime - this.startTime) / 1000);
+};
+
+
+MediaStreamRecorder.prototype.getTotalSizeMB = function () {
+    return Math.ceil(this.size/(1024*1024));
+};
+
 
 MediaStreamRecorder.prototype.getType = function () {
     this.logger.debug("MSR getType : " + IVideoRecorder.MSR);

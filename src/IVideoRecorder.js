@@ -22,6 +22,10 @@ IVideoRecorder.prototype.getType = function () {
     throw "Not Implemented function : getType()";
 };
 
+IVideoRecorder.prototype.getTotalSizeMB = function () {
+    throw "Not Implemented function : getTotalSizeMB()";
+};
+
 
 
 IVideoRecorder.AMSR = "ALTERNATIVE_MSR";

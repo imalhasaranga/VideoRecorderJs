@@ -28,10 +28,10 @@ var VideoPlaybackHelper = function (videoElement,audioElement) {
         });
         var videoBlobURL;
         var audioBlobURL;
-        if(video.blob){
+        if(video){
             videoBlobURL = window.URL.createObjectURL(video.blob);
         }
-        if(audio.blob){
+        if(audio){
             audioBlobURL = window.URL.createObjectURL(audio.blob);
             this.audioElement.src = audioBlobURL;
         }

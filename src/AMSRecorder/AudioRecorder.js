@@ -2,6 +2,8 @@
  * Created by imal365 on 3/7/18.
  */
 var AudioRecorder = function (mediaStream, isSterio, deviceSupportedSampleRate) {
+    var logger = new Logger();
+
     config = {};
     var self = this;
     var audioInput;
@@ -17,6 +19,9 @@ var AudioRecorder = function (mediaStream, isSterio, deviceSupportedSampleRate) 
     var isAudioProcessStarted = false;
     var lock = false;
     var Storage = {};
+
+    logger.debug("isSterio : "+isSterio);
+    logger.debug("Device Sample Rate : "+deviceSupportedSampleRate);
 
     this.firstcall = function () {
         if (!lock) {

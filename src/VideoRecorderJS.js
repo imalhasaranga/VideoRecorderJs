@@ -19,7 +19,7 @@ var VideoRecorderJS = (function () {
         mediaRecorderType = UtilityHelper.typeFixGetRecType(configs.mediaRecorderType);
         audioElement = UtilityHelper.getElement(configs.audiotagid, "audio");
         videoElement = UtilityHelper.getElement(configs.videotagid, "video");
-        videoPlaybackHelper = new VideoPlaybackHelper(videoElement,audioElement);
+        videoPlaybackHelper = new VideoPlaybackHelper(videoElement, audioElement);
         prepareForRecorde();
         initRecroder(streamready, streamerror);
     }
@@ -119,10 +119,31 @@ var VideoRecorderJS = (function () {
         }
     };
 
+    HTML5Recorder.prototype.getTotalSizeMB = function () {
+        return mediaRecorder.getTotalSizeMB();
+    };
+
     HTML5Recorder.prototype.uploadData = function (options, onupload) {
 
     };
 
+
+    function downloadBlob(blob,name) {
+        var url = window.URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function () {
+
+            document.body.removeChild(a);
+
+            window.URL.revokeObjectURL(url);
+
+        }, 100);
+    }
 
     //-------------------------------------------------------------------------------------------
 

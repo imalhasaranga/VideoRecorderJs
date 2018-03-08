@@ -3,7 +3,7 @@
 </head>
 <body>
 <div id="videorecorder">
-    <video id="viredemovideoele" ></video>
+    <video id="viredemovideoele"></video>
     <span style="font-size:20px;" id="countdown"></span>
 </div>
 
@@ -54,8 +54,6 @@
 
     var virec = new VideoRecorderJS.init(
             {
-                resize: 1, // recorded video dimentions are 0.4 times smaller than the original
-                webpquality: 1, // chrome and opera support webp imags, this is about the aulity of a frame
                 framerate: 15,  // recording frame rate
                 videotagid: "viredemovideoele",
                 mediaRecorderType: "ALTERNATIVE_MSR",
@@ -137,7 +135,7 @@
 
     //------------------------------- few functions that demo, how to play with the api --------------------------
 
-    var countdowntime = 15;
+    var countdowntime = 60;
     var functioncalltime = 0;
     var timerInterval = null;
 
@@ -158,6 +156,8 @@
                 document.getElementById('status').innerHTML = document.getElementById('status').innerHTML + "Audio=" + Math.ceil(audioblob.size / (1024)) + "KB";
             }
         });
+
+        document.getElementById('status').innerHTML = document.getElementById('status').innerHTML + "  Total : " + virec.getTotalSizeMB() + "MB";
     }
 
     function setCountDownTime(time) {
