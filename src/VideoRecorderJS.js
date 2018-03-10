@@ -29,12 +29,16 @@ var VideoRecorderJS = (function () {
         logger.warn("active");
         logger.error("active");
 
-        UtilityHelper.notEmpty(configs.videotagid, "Video Tag is Undefined in the Options Object.... Quiting");
+        UtilityHelper.notEmpty(configs.placeholder, "Placeholder id is Undefined in the Options Object.... Quiting");
         config = configs;
 
         mediaRecorderType = UtilityHelper.typeFixGetRecType(configs.mediaRecorderType);
-        audioElement = UtilityHelper.getElement(configs.audiotagid, "audio");
-        videoElement = UtilityHelper.getElement(configs.videotagid, "video");
+        var holder = UtilityHelper.getElement(configs.placeholder, "div");
+        audioElement = UtilityHelper.getElement(null, "audio");
+        videoElement = new VideoElement();
+        videoElement.appendTo(holder);
+        var ele = videoElement.getPlayableElement();
+
         videoPlaybackHelper = new VideoPlaybackHelper(videoElement, audioElement);
         prepareForRecorde();
         initRecroder(streamready, streamerror);
@@ -67,7 +71,7 @@ var VideoRecorderJS = (function () {
                         });
                         streamEnded = true;
                     };
-                    atttach();
+                    videoElement.atttach(stream);
                     config.sampleRate = audio_context.sampleRate;
                     RecorderStatus = "READY";
 
@@ -95,7 +99,7 @@ var VideoRecorderJS = (function () {
 
     HTML5Recorder.prototype.startCapture = function () {
         prepareForRecorde();
-        atttach();
+        videoElement.atttach(mediaStream);
         if (streamEnded) {
             initRecroder(function () {
                 mediaRecorder.start();
@@ -164,7 +168,7 @@ var VideoRecorderJS = (function () {
         videoPlaybackHelper.stopAndClearPlayback();
         mediaRecorder.stop();
         mediaRecorder.requestBlob().then(function (mediaObjectArray) {
-            deattach();
+            videoElement.deattach();
             videoPlaybackHelper.setMedia(mediaObjectArray);
             oncapturefinish(mediaObjectArray);
         });
@@ -173,25 +177,9 @@ var VideoRecorderJS = (function () {
         }
     }
     
-    function atttach() {
-        /*
-         URL.createObjectURL(stream) is depricated
-         https://www.chromestatus.com/features/5618491470118912
-         */
-        if (typeof videoElement.srcObject == "object") {
-            videoElement.srcObject = mediaStream;
-        } else {
-            videoElement.src = window.URL.createObjectURL(mediaStream);
-        }
-    }
     
-    function deattach() {
-        if (typeof videoElement.srcObject == "object") {
-            videoElement.srcObject = null;
-        } else {
-            videoElement.src = null;
-        }
-    }
+    
+    
 
     function getUserMedia(options, sucess, errror) {
         if (navigator.mediaDevices.getUserMedia) {

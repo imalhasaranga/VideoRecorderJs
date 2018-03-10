@@ -32,7 +32,7 @@ IVideoRecorder.AMSR = "ALTERNATIVE_MSR";
 IVideoRecorder.MSR = "MSR";
 
 
-window.URL = window.URL || window.webkitURL;
+//window.URL = window.URL || window.webkitURL;
 
 navigator.getUserMedia = navigator.getUserMedia ||
     navigator.webkitGetUserMedia ||

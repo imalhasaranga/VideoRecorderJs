@@ -38,6 +38,8 @@ var AMediaStreamRecorder = function (mediaStream, configs) {
         webp_quality: self.webp_quality
     });
 
+    this.videoPromise = null;
+
 };
 
 AMediaStreamRecorder.prototype = Object.create(IVideoRecorder.prototype);
@@ -54,20 +56,22 @@ AMediaStreamRecorder.prototype.start = function () {
 AMediaStreamRecorder.prototype.stop = function () {
     this.endTime = new Date().getTime();
     this.audioRecorder.stop();
-    this.videoRecorder.stopCapture();
+    this.videoPromise = this.videoRecorder.stopCapture();
     this.logger.debug("Duration : " + this.getDuration())
 };
 
 AMediaStreamRecorder.prototype.requestBlob = function () {
     var self = this;
     return new Promise(function (resolve) {
-        var vblobInfo = self.videoRecorder.getBlob();
-        self.audioRecorder.requestBlob().then(function (ablobinfo) {
-            self.size = ablobinfo.blob.size + vblobInfo.blob.size;
-            resolve([
-                {type: "audio", blob: ablobinfo.blob, extension: ablobinfo.extension},
-                {type: "video", blob: vblobInfo.blob, extension: vblobInfo.extension}
-            ]);
+        self.videoPromise.then(function () {
+            var vblobInfo = self.videoRecorder.getBlob();
+            self.audioRecorder.requestBlob().then(function (ablobinfo) {
+                self.size = ablobinfo.blob.size + vblobInfo.blob.size;
+                resolve([
+                    {type: "audio", blob: ablobinfo.blob, extension: ablobinfo.extension},
+                    {type: "video", blob: vblobInfo.blob, extension: vblobInfo.extension}
+                ]);
+            });
         });
     });
 };

@@ -2,9 +2,9 @@
  * Created by imal365 on 3/8/18.
  */
 var VideoPlaybackHelper = function (videoElement,audioElement) {
-
+    var logger = new Logger();
     this.playbackType = 1; //NORMAL = 1, DUAL = 2;
-    this.videoElement = videoElement;
+    this.videoElement = videoElement.getPlayableElement();
     this.audioElement = audioElement;
 
     this.stopAndClearPlayback = function () {
@@ -36,7 +36,9 @@ var VideoPlaybackHelper = function (videoElement,audioElement) {
             this.audioElement.src = audioBlobURL;
         }
         this.videoElement.autoplay = false;
-        this.videoElement.src = videoBlobURL;;
+        this.videoElement.src = videoBlobURL;
+        this.videoElement.currentTime = 0.1;
+
     };
 
     this.play = function () {

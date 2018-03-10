@@ -33,6 +33,7 @@
   },
   "homepage": "https://github.com/imalhasaranga/Html5_Video_Audio_Recorder#readme",
   "dependencies": {
+    "ogv": "^1.5.7",
     "promise-polyfill": "^7.1.0"
   }
 }
