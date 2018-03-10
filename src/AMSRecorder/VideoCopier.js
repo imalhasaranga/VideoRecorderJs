@@ -6,7 +6,7 @@ var VideoCopier = function (videoElement, config) {
     this.logger = new Logger();
     this.videoElement = videoElement;
     this.recrodinterval = null;
-    this.workerPool = new WorkerPool('src/worker.js');
+    this.workerPool = new WorkerPool('src/worker.js',5);
 
 
     this.counter = 0;

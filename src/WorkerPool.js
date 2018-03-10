@@ -3,28 +3,28 @@
  */
 var WorkerPool = function (workerUrl, numberOfWOrkers) {
     this.logger = new Logger();
-    this.workers = [];
+    this.pool = [];
     this.index = 0;
+    this.onmessageE = null;
     var self = this;
     for (var i = 0; i < numberOfWOrkers; ++i) {
-        this.worker = new Worker(workerUrl);
-        this.worker.onmessage = function (e) {
-            self.callback && self.callback(e);
+        var worker = new Worker(workerUrl);
+        worker.onmessage = function (e) {
+            self.onmessageE && self.onmessageE(e);
         };
-        this.logger.debug("Registering worker #"+i);
-        this.workers.push(this.worker);
+        this.logger.debug("Worker Created #"+(i+1));
+        this.pool.push(worker);
     }
 };
 
-WorkerPool.prototype.onmessage = function(callback){
-    this.callback = callback;
+WorkerPool.prototype.onmessage = function (onmessage) {
+    this.onmessageE = onmessage;
 };
 
-WorkerPool.prototype.postMessage = function (arrayOfMessages) {
-    this.logger.debug("posting to : #"+this.index);
-    this.workers[this.index].postMessage(arrayOfMessages);
+WorkerPool.prototype.postMessage = function (arrayofVars) {
+    this.pool[this.index].postMessage(arrayofVars);
     ++this.index;
-    if(this.index >= this.workers.length){
+    if(this.index >= this.pool.length){
         this.index = 0;
     }
 };

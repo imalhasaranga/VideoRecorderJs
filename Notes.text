@@ -1,0 +1,11 @@
+Worker Pool Stats
+=================
+
+Frame Rate : 25
+
+Recording   Worker  Processing  Frames  Lost
+Duration    count   Time        Count   Frames
+
+10s         01      02.00       250     00
+10s         05      01:17       247     03
+10s         10      01.11       231     19
