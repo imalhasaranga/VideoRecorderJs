@@ -4,6 +4,7 @@
 var LocalWebpProcessor = function (workerPath, count) {
     IFProcessor.call(this);
     this.logger = new Logger();
+    this.logger.debug("Frame Processing Strategy : "+LocalWebpProcessor.name);
     // this.workerPool = new WorkerPool('src/worker.js',5);
     this.counter = 0;
     this.onMessageCounter = 0;
@@ -22,6 +23,7 @@ LocalWebpProcessor.prototype.prepare = function () {
     this.counter = 0;
     this.onMessageCounter = 0;
     this.frames = [];
+    this.startTime = new Date().getTime();
 
     this.dataReadyPromise = new Promise(function (resolve, reject) {
         self.workerPool.onmessage(function (e) {
@@ -43,17 +45,17 @@ LocalWebpProcessor.prototype.prepare = function () {
 };
 
 
-LocalWebpProcessor.prototype.processFrame = function (canvas) {
+LocalWebpProcessor.prototype.processFrame = function (canvas,ctx) {
     ++this.counter;
-    var imageData = canvas.getImageData(0, 0, canvas.width, canvas.height);
+    var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     this.workerPool.postMessage([imageData, this.counter]);
 };
 
-LocalWebpProcessor.prototype.getWebpArray = function (frameRateResolverFunction) {
+LocalWebpProcessor.prototype.getBlob = function (frameRateResolverFunction) {
     var self = this;
-    var frameRate = frameRateResolverFunction(self.frames.length);
     return new Promise(function (resolve) {
         self.dataReadyPromise.then(function () {
+            var frameRate = frameRateResolverFunction(self.frames.length);
             var blob = new Whammy.fromImageArray(self.frames, frameRate);
             resolve(blob);
         });

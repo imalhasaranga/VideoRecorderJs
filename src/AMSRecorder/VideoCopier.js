@@ -12,9 +12,6 @@ var VideoCopier = function (videoElement, config) {
     this.webp_quality = config.webp_quality ? config.webp_quality : 1.0;
     this.timer = parseInt(1000 / this.framerate);
 
-    this.logger.debug("Quality : "+this.quality);
-    this.logger.debug("FrameRate : "+this.framerate);
-    this.logger.debug("WebP Quality : "+this.webp_quality);
     this.logger.debug("Timer : "+this.timer);
 
     this.canvas = document.createElement("canvas");
@@ -27,15 +24,14 @@ var VideoCopier = function (videoElement, config) {
         self.newHeight = self.canvas.height = parseInt(self.quality * self.videoElement.clientHeight);
     };
 
-    this.logger.debug("ReadyState :" + this.videoElement.readyState);
     if (this.videoElement.readyState == 4) {
         this.fixHeights();
     } else {
-        this.fixHeights();
+        this.videoElement.onloadeddata = this.fixHeights;
     }
 
-    this.ifProcessor = new LocalWebpProcessor('src/worker.js',5);
-    this.blobPromise = null;
+    this.ifProcessor = new LocalWebpProcessor('src/worker.js',3);
+    //this.ifProcessor = new DirectWebpProcessor(this.webp_quality);
 
 };
 
@@ -47,7 +43,7 @@ VideoCopier.prototype.startCapture = function () {
     this.recrodinterval = setInterval(function () {
         if (self.videoElement.readyState === 4) {
             self.ctx.drawImage(self.videoElement, 0, 0, self.newWidth, self.newHeight);
-            self.ifProcessor.processFrame(self.canvas);
+            self.ifProcessor.processFrame(self.canvas,self.ctx);
         }
     }, this.timer);
 };
@@ -58,9 +54,9 @@ VideoCopier.prototype.stopCapture = function () {
     this.reset();
     this.endTime = new Date().getTime();
     var elapsed = (this.endTime - this.startTime)/1000;
-    this.blobPromise = this.ifProcessor.getBlob(function (framecount) {
-        self.logger.debug("[Expected,Actual] Frame Rate  : ["+ self.framerate+","+calCulatedFrameRate+"]");
+    var blobPromise = this.ifProcessor.getBlob(function (framecount) {
         var calCulatedFrameRate = parseInt(framecount/elapsed);
+        self.logger.debug("[Expected,Actual] Frame Rate  : ["+ self.framerate+","+calCulatedFrameRate+"]");
         if(self.framerate == calCulatedFrameRate){
             self.logger.debug("Actual and Expected Frame count matches, so using Expected Frame Rate");
             return self.framerate;
@@ -68,18 +64,16 @@ VideoCopier.prototype.stopCapture = function () {
         self.logger.debug("Calculated Frame Rate and Actual Frame Rate does not match Using Calculated Frame Rate");
         return calCulatedFrameRate;
     });
-};
-
-VideoCopier.prototype.getBlob = function () {
-    var self = this;
-    var blob = this.videoBlob;
-    this.videoBlob = null;
-    this.reset();
     return new Promise(function (resolve) {
-        self.blobPromise.then(function (blob) {
+        blobPromise.then(function (blob) {
             resolve({blob: blob });
         });
     });
+};
+
+VideoCopier.prototype.getBlob = function () {
+
+
 };
 
 VideoCopier.prototype.reset = function () {

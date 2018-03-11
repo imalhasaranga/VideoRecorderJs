@@ -43,45 +43,38 @@
     }
 </script>
 <script type="text/javascript" src="/node_modules/ogv/dist/ogv.js" ></script>
-<script type="text/javascript" src="../src/WorkerPool.js" ></script>
-<script src="../src/whammy.js" type="text/javascript"></script>
+<script src="../src/Vendor/whammy.js" type="text/javascript"></script>
 <script src="../src/WASM/a.out.js" type="text/javascript"></script>
-<script src="../src/IVideoRecorder.js" type="text/javascript"></script>
-<script src="../src/VideoElement.js" type="text/javascript"></script>
+
+<script src="../src/WorkerPool.js" type="text/javascript" ></script>
 <script src="../src/Logger.js" type="text/javascript"></script>
+<script src="../src/VideoElement.js" type="text/javascript"></script>
 <script src="../src/MediaUtils.js" type="text/javascript"></script>
 <script src="../src/VideoPlaybackHelper.js" type="text/javascript"></script>
+
+<script src="../src/IVideoRecorder.js" type="text/javascript"></script>
 <script src="../src/MSRecorder/MediaStreamRecorder.js" type="text/javascript"></script>
+<script src="../src/AMSRecorder/AMediaStreamRecorder.js" type="text/javascript"></script>
 <script src="../src/AMSRecorder/VideoCopier.js" type="text/javascript"></script>
 <script src="../src/AMSRecorder/AudioRecorder.js" type="text/javascript"></script>
-<script src="../src/AMSRecorder/AMediaStreamRecorder.js" type="text/javascript"></script>
-<script src="../src/data.js" type="text/javascript"></script>
-<!--videodatastream-->
+
+<script src="../src/AMSRecorder/FProcessor/IFProcessor.js" type="text/javascript"></script>
+<script src="../src/AMSRecorder/FProcessor/DirectWebpProcessor.js" type="text/javascript"></script>
+<script src="../src/AMSRecorder/FProcessor/NetworkWebmProcessor.js" type="text/javascript"></script>
+<script src="../src/AMSRecorder/FProcessor/NetworkWebmProcessor.js" type="text/javascript"></script>
+<script src="../src/AMSRecorder/FProcessor/LocalWebpProcessor.js" type="text/javascript"></script>
+
+<!--Test and delete-->
+<script src="../src/Scripts-toDelete/data.js" type="text/javascript"></script>
+
 
 <script src="../src/VideoRecorderJS.js" type="text/javascript"></script>
 
+
+
+
+
 <script type="text/javascript">
-
-
-
-
-
-
-    //var player = new OGVPlayer();
-
-    //var parent = document.getElementById("vplaceholder");
-    //parent.appendChild(player);
-    //player.src = videodatastream;
-    //player.play();
-
-
-
-    FromBase64 = function (str) {
-        return atob(str).split('').map(function (c) { return c.charCodeAt(0); });
-    };
-
-
-
 
 
     var startRecord = document.getElementById("startRecrodBut1");

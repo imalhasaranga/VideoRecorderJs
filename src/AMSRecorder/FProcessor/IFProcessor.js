@@ -13,7 +13,7 @@ IFProcessor.prototype.prepare = function () {
 /*
 * @param canvasContext
 * */
-IFProcessor.prototype.processFrame = function (canvasContext) {
+IFProcessor.prototype.processFrame = function (canvasContext,context) {
     throw "recordFrame is Not implemented";
 };
 

@@ -9,3 +9,26 @@ Duration    count   Time        Count   Frames
 10s         01      02.00       250     00
 10s         05      01:17       247     03
 10s         10      01.11       231     19
+
+Need to find why ?
+
+Build
+=====
+
+Create a build if grunt does not work find one works
+
+Replace some ES6 Syntax with ES5
+=====
+worker.js
+
+
+Fix logger.js to have basic loging features
+=========================
+time and where the error came etc
+
+
+Realive load worker
+============================
+https://blog.raananweber.com/2015/05/30/web-worker-without-a-separate-file/
+
+Load Wasm file relatvie to the .js file

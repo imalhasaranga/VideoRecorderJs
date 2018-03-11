@@ -63,13 +63,12 @@ AMediaStreamRecorder.prototype.stop = function () {
 AMediaStreamRecorder.prototype.requestBlob = function () {
     var self = this;
     return new Promise(function (resolve) {
-        self.videoPromise.then(function () {
-            var vblobInfo = self.videoRecorder.getBlob();
+        self.videoPromise.then(function (vblobInfo) {
             self.audioRecorder.requestBlob().then(function (ablobinfo) {
                 self.size = ablobinfo.blob.size + vblobInfo.blob.size;
                 resolve([
                     {type: "audio", blob: ablobinfo.blob, extension: ablobinfo.extension},
-                    {type: "video", blob: vblobInfo.blob, extension: vblobInfo.extension}
+                    {type: "video", blob: vblobInfo.blob, extension: vblobInfo.type }
                 ]);
             });
         });

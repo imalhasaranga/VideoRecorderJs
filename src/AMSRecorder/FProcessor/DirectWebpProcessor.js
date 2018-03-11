@@ -3,6 +3,8 @@
  */
 var DirectWebpProcessor = function (webp_quality) {
     IFProcessor.call(this);
+    this.logger = new Logger();
+    this.logger.debug("Frame Processing Strategy : "+DirectWebpProcessor.name);
     this.webp_quality = (webp_quality != null && webp_quality < 1) ? webp_quality : null;
     this.webpFrameArray = [];
 };
@@ -10,6 +12,9 @@ var DirectWebpProcessor = function (webp_quality) {
 DirectWebpProcessor.prototype = Object.create(IFProcessor.prototype);
 DirectWebpProcessor.constructor = DirectWebpProcessor;
 
+DirectWebpProcessor.prototype.prepare = function () {
+    this.webpFrameArray = [];
+};
 
 DirectWebpProcessor.prototype.processFrame = function (canvas) {
     this.webpFrameArray.push(canvas.toDataURL('image/webp', this.webp_quality));
