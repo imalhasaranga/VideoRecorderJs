@@ -1,35 +1,37 @@
 {
   "name": "videorecorderjs",
-  "version": "1.0.1",
-  "description": "html5 video recording library",
-  "main": "index.js",
-  "devDependencies": {
-    "grunt": "^0.4.5",
-    "grunt-contrib-concat": "^1.0.1",
-    "grunt-contrib-copy": "^0.8.2",
-    "grunt-contrib-jshint": "^1.0.0",
-    "grunt-contrib-uglify": "^0.11.1"
+  "version": "2.0.0",
+  "description": "Modern HTML5 Video & Screen Recording Library",
+  "type": "module",
+  "main": "./dist/videorecorder.umd.js",
+  "module": "./dist/videorecorder.es.js",
+  "exports": {
+    ".": {
+      "import": "./dist/videorecorder.es.js",
+      "require": "./dist/videorecorder.umd.js"
+    }
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://imalhasaranga@github.com/imalhasaranga/Html5_Video_Audio_Recorder.git"
+    "url": "git+https://github.com/imalhasaranga/VideoRecorderJs.git"
   },
   "keywords": [
     "webrtc",
     "html5",
-    "getUserMedia",
-    "MediaStreamRecorder",
+    "screen-recording",
+    "mediarecorder",
     "video",
     "audio",
     "record"
   ],
-  "author": "Imal hasaranga",
+  "author": "Imal Hasaranga",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/imalhasaranga/Html5_Video_Audio_Recorder/issues"
-  },
-  "homepage": "https://github.com/imalhasaranga/Html5_Video_Audio_Recorder#readme"
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
 }

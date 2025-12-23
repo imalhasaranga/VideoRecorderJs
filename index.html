@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VideoRecorderJS Demo</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --surface-color: #1e293b;
+            --primary-color: #3b82f6;
+            --accent-color: #8b5cf6;
+            --text-color: #f8fafc;
+            --danger-color: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 2rem;
+        }
+
+        h1 {
+            background: linear-gradient(to right, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        p.subtitle {
+            color: #94a3b8;
+            margin-bottom: 2rem;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 2rem;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .video-stage {
+            background: #000;
+            border-radius: 1rem;
+            overflow: hidden;
+            position: relative;
+            aspect-ratio: 16/9;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .controls {
+            background: var(--surface-color);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            height: fit-content;
+        }
+
+        .btn {
+            background: var(--surface-color);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        .btn-primary:hover { background: #2563eb; }
+
+        .btn-danger {
+            background: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+        .btn-danger:hover { background: #dc2626; }
+
+        .status-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.875rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            backdrop-filter: blur(4px);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #94a3b8;
+        }
+        .status-dot.recording {
+            background: var(--danger-color);
+            box-shadow: 0 0 10px var(--danger-color);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .visualizer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            pointer-events: none;
+        }
+
+        canvas#audio-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .log-panel {
+            margin-top: 1rem;
+            background: #000;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: #22c55e;
+            height: 150px;
+            overflow-y: auto;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>VideoRecorderJS</h1>
+    <p class="subtitle">Next Gen Video & Audio Recording Library</p>
+
+    <div class="container">
+        <div class="video-stage">
+            <div class="status-badge">
+                <div class="status-dot" id="status-dot"></div>
+                <span id="status-text">Ready</span>
+            </div>
+            <video id="preview" playsinline muted autoplay></video>
+            <div class="visualizer">
+                <canvas id="audio-canvas"></canvas>
+            </div>
+        </div>
+
+        <div class="controls">
+            <h3>Sources</h3>
+            <button class="btn" id="btn-camera">📷 Start Camera</button>
+            <button class="btn" id="btn-screen">💻 Start Screen Share</button>
+            <hr style="width: 100%; border-color: rgba(255,255,255,0.1);">
+            <h3>Actions</h3>
+            <button class="btn btn-primary" id="btn-record" disabled>● Start Recording</button>
+            <button class="btn btn-danger" id="btn-stop" disabled>■ Stop Recording</button>
+            <button class="btn" id="btn-download" disabled>⬇ Download</button>
+
+            <div class="log-panel" id="log-panel">
+                > System Ready...
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Lib -->
+    <script type="module">
+        import { VideoRecorderJS } from './src/index.js';
+
+        const recorder = new VideoRecorderJS({
+            videotagid: 'preview',
+            log: true
+        });
+
+        const logPanel = document.getElementById('log-panel');
+        const btnCamera = document.getElementById('btn-camera');
+        const btnScreen = document.getElementById('btn-screen');
+        const btnRecord = document.getElementById('btn-record');
+        const btnStop = document.getElementById('btn-stop');
+        const btnDownload = document.getElementById('btn-download');
+        const statusDot = document.getElementById('status-dot');
+        const statusText = document.getElementById('status-text');
+
+        let recordedBlob = null;
+        let audioContext, analyser, source, canvas, ctx;
+
+        function log(msg) {
+            const p = document.createElement('div');
+            p.innerText = `> ${msg}`;
+            logPanel.appendChild(p);
+            logPanel.scrollTop = logPanel.scrollHeight;
+        }
+
+        // Setup Visualizer
+        function setupVisualizer(stream) {
+            if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioContext.createAnalyser();
+            source = audioContext.createMediaStreamSource(stream);
+            source.connect(analyser);
+            
+            canvas = document.getElementById('audio-canvas');
+            ctx = canvas.getContext('2d');
+            
+            // Resize canvas
+            const resize = () => {
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+            };
+            window.addEventListener('resize', resize);
+            resize();
+
+            analyser.fftSize = 256;
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+
+            function draw() {
+                requestAnimationFrame(draw);
+                analyser.getByteFrequencyData(dataArray);
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                const barWidth = (canvas.width / bufferLength) * 2.5;
+                let barHeight;
+                let x = 0;
+
+                for (let i = 0; i < bufferLength; i++) {
+                    barHeight = dataArray[i] / 2;
+                    ctx.fillStyle = `rgba(139, 92, 246, ${barHeight / 100})`; // Purple accent
+                    ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+                    x += barWidth + 1;
+                }
+            }
+            draw();
+        }
+
+        // Event Listeners
+        recorder.on('stream-ready', (stream) => {
+            log('Stream Ready!');
+            btnRecord.disabled = false;
+            btnCamera.disabled = true;
+            btnScreen.disabled = true;
+            statusText.innerText = 'Live';
+            setupVisualizer(stream);
+        });
+
+        recorder.on('start', () => {
+            log('Recording Started...');
+            statusDot.classList.add('recording');
+            statusText.innerText = 'Recording';
+            btnRecord.disabled = true;
+            btnStop.disabled = false;
+        });
+
+        recorder.on('stop', (result) => {
+            log(`Recording Finished. Size: ${result.blob.size} bytes`);
+            recordedBlob = result.blob;
+            statusDot.classList.remove('recording');
+            statusText.innerText = 'Finished';
+            btnStop.disabled = true;
+            btnDownload.disabled = false;
+            
+            // Auto play result
+            const preview = document.getElementById('preview');
+            preview.srcObject = null;
+            preview.src = result.url;
+            preview.muted = false;
+            preview.controls = true;
+            preview.play();
+        });
+
+        // UI Buttons
+        btnCamera.onclick = () => {
+            log('Requesting Camera...');
+            recorder.startCamera();
+        };
+
+        btnScreen.onclick = () => {
+            log('Requesting Screen...');
+            recorder.startScreen();
+        };
+
+        btnRecord.onclick = () => {
+            recorder.startRecording();
+            // Manually update UI since 'start' event might be internal
+            log('Recording Started...');
+            statusDot.classList.add('recording');
+            statusText.innerText = 'Recording';
+            btnRecord.disabled = true;
+            btnStop.disabled = false;
+        };
+
+        btnStop.onclick = () => {
+            recorder.stopRecording();
+        };
+
+        btnDownload.onclick = () => {
+            if (recordedBlob) {
+                const url = URL.createObjectURL(recordedBlob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = 'recording.webm';
+                document.body.appendChild(a);
+                a.click();
+                URL.revokeObjectURL(url);
+                log('Download started.');
+            }
+        };
+
+    </script>
+</body>
+</html>
