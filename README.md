@@ -1,4 +1,4 @@
-# 2.0.0 VideoRecorderJS
+# 3.0.0 VideoRecorderJS
 
 ![Version](https://img.shields.io/npm/v/videorecorderjs?style=flat-square)
 ![License](https://img.shields.io/npm/l/videorecorderjs?style=flat-square)
@@ -15,7 +15,7 @@
 - 🚀 **Modern API**: Promise-based, Event-driven, and ES Module ready.
 - 📦 **Lightweight**: Zero dependencies.
 
-> **Note**: Version 2.0.0 is a complete rewrite using modern Web APIs (`MediaRecorder`, `mediaDevices`). Support for legacy browsers (IE, etc.) has been dropped in favor of performance and standard compliance.
+> **Note**: Version 3.0.0 introduces breaking changes to standardizes the API (CamelCase) and error handling (Promises Refection). See the Migration section for details.
 
 ![Demo UI](videorecorderjs_ui_live_1766493297449.png)
 
@@ -31,57 +31,56 @@ yarn add videorecorderjs
 
 ## 🚀 Usage
 
-### basic Example
+### Basic Example
 
 ```javascript
-import { VideoRecorderJS } from 'videorecorderjs';
+import VideoRecorderJS from 'videorecorderjs';
 
 const recorder = new VideoRecorderJS({
-    videotagid: 'my-video-element',
+    videoTagId: 'my-video-element', // Changed from videotagid
     videoWidth: 1280,
     videoHeight: 720,
     log: true
 });
 
-// Listen for events
-recorder.on('stream-ready', (stream) => {
-    console.log('Stream is ready to record');
-});
+// ... listeners ...
 
-recorder.on('stop', (result) => {
-    // result contains { blob, url, type }
-    const video = document.getElementById('my-video-element');
-    video.src = result.url;
-});
-
-// Start Camera
-await recorder.startCamera();
+// Start Camera (Async/Await recommended)
+try {
+    await recorder.startCamera();
+} catch (error) {
+    console.error("Camera access failed:", error);
+}
 
 // Start Recording
-recorder.startRecording();
-
-// Stop after 5 seconds
-setTimeout(() => {
-    recorder.stopRecording();
-}, 5000);
+try {
+    recorder.startRecording();
+} catch (error) {
+    console.error("Recording failed to start:", error);
+}
 ```
 
 ### Screen Recording
 
 ```javascript
-await recorder.startScreen();
-recorder.startRecording();
+try {
+    await recorder.startScreen();
+    recorder.startRecording();
+} catch (error) {
+    console.error("Screen recording failed:", error);
+}
 ```
 
 ## 🛠 Configuration
 
 | Option | Type | Default | Description |
 | -- | -- | -- | -- |
-| `videotagid` | `string` | **Required** | The ID of the `<video>` element to attach the stream to. |
+| `videoTagId` | `string` or `HTMLElement` | **Required** | The ID or Element to attach the stream to. |
 | `videoWidth` | `number` | `640` | Ideal video width. |
 | `videoHeight` | `number` | `480` | Ideal video height. |
-| `framerate` | `number` | `30` | Desired frame rate. |
-| `mimeType` | `string` | `video/webm` | The MIME type for recording (e.g., `video/mp4`). |
+| `frameRate` | `number` | `30` | Desired frame rate. |
+| `webpQuality` | `number` | `1.0` | Quality of WebP images (if used). |
+| `mimeType` | `string` | `video/webm` | The MIME type for recording. |
 | `log` | `boolean` | `false` | Enable console logging. |
 
 ## 🎨 Styling & Customization

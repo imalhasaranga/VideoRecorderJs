@@ -1,10 +1,21 @@
 export class VideoRecorderJS {
     constructor(options = {}) {
+        // Backwards compatibility handling
+        if (options.videotagid) {
+            console.warn('[VideoRecorderJS] Deprecation Warning: "videotagid" is deprecated. Use "videoTagId" instead.');
+        }
+        if (options.framerate) {
+            console.warn('[VideoRecorderJS] Deprecation Warning: "framerate" is deprecated. Use "frameRate" instead.');
+        }
+        if (options.webpquality) {
+            console.warn('[VideoRecorderJS] Deprecation Warning: "webpquality" is deprecated. Use "webpQuality" instead.');
+        }
+
         this.config = {
             resize: options.resize || 1,
-            webpQuality: options.webpquality || 1.0,
-            frameRate: options.framerate || 30,
-            videoTagId: options.videotagid,
+            webpQuality: options.webpQuality || options.webpquality || 1.0,
+            frameRate: options.frameRate || options.framerate || 30,
+            videoTagId: options.videoTagId || options.videotagid,
             videoWidth: options.videoWidth || 640,
             videoHeight: options.videoHeight || 480,
             log: options.log || false,
@@ -14,15 +25,21 @@ export class VideoRecorderJS {
         this.mediaRecorder = null;
         this.stream = null;
         this.chunks = [];
-        this.videoElement = document.getElementById(this.config.videoTagId);
+        
+        // Support both ID string and direct HTMLElement
+        if (typeof this.config.videoTagId === 'string') {
+            this.videoElement = document.getElementById(this.config.videoTagId);
+        } else if (this.config.videoTagId instanceof HTMLVideoElement) {
+            this.videoElement = this.config.videoTagId;
+        }
 
         if (!this.videoElement) {
-            throw new Error(`Video element with ID '${this.config.videoTagId}' not found.`);
+            throw new Error(`[VideoRecorderJS] Video element not found. Provide a valid ID string or HTMLVideoElement.`);
         }
 
         this.events = {
             'stream-ready': [],
-            'stream-error': [],
+            'stream-error': [], // Deprecated but kept empty to avoid crash if someone emits it
             'stop': [],
             'dataavailable': []
         };
@@ -45,60 +62,50 @@ export class VideoRecorderJS {
     }
 
     async startCamera() {
-        try {
-            this.stream = await navigator.mediaDevices.getUserMedia({
-                audio: true,
-                video: {
-                    width: { ideal: this.config.videoWidth },
-                    height: { ideal: this.config.videoHeight }
-                }
-            });
+        // v3.0.0: Replaces internal try/catch with direct Promise propagation
+        this.stream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+            video: {
+                width: { ideal: this.config.videoWidth },
+                height: { ideal: this.config.videoHeight }
+            }
+        });
 
-            this.videoElement.srcObject = this.stream;
-            this.videoElement.muted = true;
-            this.videoElement.autoplay = true;
+        this.videoElement.srcObject = this.stream;
+        this.videoElement.muted = true;
+        this.videoElement.autoplay = true;
 
-            this.emit('stream-ready', this.stream);
-            this.log('Camera started successfully.');
-        } catch (err) {
-            this.emit('stream-error', err);
-            console.error('Error accessing camera:', err);
-        }
+        this.emit('stream-ready', this.stream);
+        this.log('Camera started successfully.');
     }
 
     async startScreen() {
-        try {
-            this.stream = await navigator.mediaDevices.getDisplayMedia({
-                video: {
-                    width: { ideal: this.config.videoWidth },
-                    height: { ideal: this.config.videoHeight }
-                },
-                audio: true
-            });
+        this.stream = await navigator.mediaDevices.getDisplayMedia({
+            video: {
+                width: { ideal: this.config.videoWidth },
+                height: { ideal: this.config.videoHeight }
+            },
+            audio: true
+        });
 
-            this.videoElement.srcObject = this.stream;
-            this.videoElement.autoplay = true;
-            this.videoElement.muted = true; // Avoid feedback loop
+        this.videoElement.srcObject = this.stream;
+        this.videoElement.autoplay = true;
+        this.videoElement.muted = true; // Avoid feedback loop
 
-            this.emit('stream-ready', this.stream);
-            this.log('Screen sharing started successfully.');
-        } catch (err) {
-            this.emit('stream-error', err);
-            console.error('Error accessing screen:', err);
-        }
+        this.emit('stream-ready', this.stream);
+        this.log('Screen sharing started successfully.');
     }
 
     startRecording() {
         if (!this.stream) {
-            console.error('No stream to record. Call startCamera() or startScreen() first.');
-            return;
+            throw new Error('[VideoRecorderJS] No active stream. Call startCamera() or startScreen() first.');
         }
 
         this.chunks = [];
         let options = { mimeType: this.config.mimeType };
         
         if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-            console.warn(`${options.mimeType} is not supported, falling back to default.`);
+            console.warn(`[VideoRecorderJS] ${options.mimeType} is not supported, falling back to default.`);
             options = {};
         }
 
@@ -112,11 +119,13 @@ export class VideoRecorderJS {
         };
 
         this.mediaRecorder.onstop = () => {
-             const blob = new Blob(this.chunks, { type: this.mediaRecorder.mimeType || 'video/webm' });
+             const finalMimeType = this.mediaRecorder.mimeType || 'video/webm';
+             const blob = new Blob(this.chunks, { type: finalMimeType });
              this.emit('stop', {
                  blob: blob,
                  url: URL.createObjectURL(blob),
-                 type: 'video'
+                 type: 'video',
+                 mimeType: finalMimeType
              });
              this.log('Recording stopped.');
         };
@@ -134,3 +143,5 @@ export class VideoRecorderJS {
         }
     }
 }
+
+export default VideoRecorderJS;
