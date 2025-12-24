@@ -1,6 +1,6 @@
 {
   "name": "videorecorderjs",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Modern HTML5 Video & Screen Recording Library",
   "type": "module",
   "main": "./dist/videorecorder.umd.js",

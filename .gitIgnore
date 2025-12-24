@@ -3,3 +3,7 @@
 node_modules
 node_modules/**
 npm-debug.log
+
+# Uploads
+public/uploads/
+dist/uploads/
