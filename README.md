@@ -1,3 +1,10 @@
+![VideoRecorderJs Banner](readme_banner.jpg)
+
+### Try out before you actually use it 
+```bash
+docker run --pull always -p 9090:80 treineticprojects/demo_opensource:latest
+```
+
 # 3.1.0 VideoRecorderJS
 
 ![Version](https://img.shields.io/npm/v/videorecorderjs?style=flat-square)
